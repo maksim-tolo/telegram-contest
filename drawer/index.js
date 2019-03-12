@@ -30,8 +30,12 @@ export default class Drawer {
     this.options = Object.assign({}, Drawer.DEFAULT_OPTIONS, options);
   }
 
-  // TODO: Rename
-  init(data) {
+  /**
+   * @public
+   * @param data
+   * @returns {Drawer}
+   */
+  prepareData(data) {
     const fields = this.options.fieldExtractor(data);
     const types = fields.map(field => this.options.typeExtractor(data, field));
     const lines = fields.filter((field, index) => this.isLine(types[index]));
@@ -41,22 +45,15 @@ export default class Drawer {
       lines: lines.map(field => this.extractLine(data, field)),
       xAxis: this.options.dataExtractor(data, xAxis)
     };
+
+    return this;
   }
 
-  extractLine(data, field) {
-    const values = this.options.dataExtractor(data, field);
-    const color = this.options.colorExtractor(data, field) || this.options.defaultLineColor;
-    const name = this.options.nameExtractor(data, field) || this.options.defaultLineName;
-    const [min, max] = extent(values);
+  /**
+   * @public
+   */
+  render() {
 
-    return {
-      values,
-      min,
-      max,
-      color,
-      name,
-      dataField: field,
-    };
   }
 
   isLine(type) {
@@ -67,16 +64,38 @@ export default class Drawer {
     return type === this.options.lineType;
   }
 
+  extractLine(data, field) {
+    const values = this.options.dataExtractor(data, field);
+    const color = this.options.colorExtractor(data, field) || this.options.defaultLineColor;
+    const name = this.options.nameExtractor(data, field) || this.options.defaultLineName;
+    const [min, max] = extent(values);
+    const scaled = this.scaleLine(values, max - min);
+
+    return {
+      values,
+      min,
+      max,
+      color,
+      name,
+      scaled,
+      dataField: field,
+    };
+  }
+
   // TODO: Optimize
-  scaleLine(data, start, end) {
-    const diff = data.max - data.min;
+  scaleLine(values, diff) {
+    return values.map(value => this.options.width * value / diff);
   }
 
-  scaleYAxis(start, end) {
+  createLine(x1, y1, x2, y2, color) {
+    const newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
 
-  }
+    newLine.setAttribute('x1', x1);
+    newLine.setAttribute('y1', y1);
+    newLine.setAttribute('x2', x2);
+    newLine.setAttribute('y2', y2);
+    newLine.setAttribute('stroke', color);
 
-  render() {
-
+    return newLine;
   }
 }
