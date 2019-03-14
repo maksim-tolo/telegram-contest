@@ -6,10 +6,11 @@ import {
   nameExtractor,
   typeExtractor,
   dataExtractor,
-  max
+  max,
+  filterEmpty
 } from 'helper';
 
-export default class Drawer {
+export default class ChartController {
   static get DEFAULT_OPTIONS() {
     return {
       width: 500,
@@ -27,14 +28,12 @@ export default class Drawer {
   }
 
   constructor(options = {}) {
-    this.options = Object.assign({}, Drawer.DEFAULT_OPTIONS, options);
+    this.options = Object.assign({}, ChartController.DEFAULT_OPTIONS, options);
     this.cache = {};
   }
 
   /**
    * @public
-   * @param data
-   * @returns {Drawer}
    */
   prepareData(data) {
     const fields = this.options.fieldExtractor(data);
@@ -55,17 +54,10 @@ export default class Drawer {
   /**
    * @public
    */
-  render() {
-    return this;
-  }
-
-  /**
-   * @public
-   */
   scale(start = 0, end = this.data.length) {
     const lines = this.data.lines.filter(({ visible }) => visible);
     const visibleFields = lines.map(({ field }) => field);
-    const cacheKey = `${start}_${end}_${visibleFields.join('_')}`;
+    const cacheKey = `${start}_${end}_${this.options.height}_${visibleFields.join('_')}`;
 
     if (!this.cache[cacheKey]) {
       const xAxis = this.data.xAxis.slice(start, end);
@@ -97,9 +89,19 @@ export default class Drawer {
 
   /**
    * @public
+   * TODO
    */
-  toggleLineVisibility(field, isVisible = true) {
+  updateLine() {
+    return this;
+  }
 
+  /**
+   * @public
+   */
+  updateOptions(options = {}) {
+    Object.assign(this.options, filterEmpty(options));
+
+    return this;
   }
 
   isLine(type) {
@@ -126,18 +128,6 @@ export default class Drawer {
 
   // TODO: Optimize
   scaleLine(values, maxValue) {
-    return values.map(value => this.options.width * value / maxValue);
-  }
-
-  createLine(x1, y1, x2, y2, color) {
-    const newLine = document.createElementNS('http://www.w3.org/2000/svg','line');
-
-    newLine.setAttribute('x1', x1);
-    newLine.setAttribute('y1', y1);
-    newLine.setAttribute('x2', x2);
-    newLine.setAttribute('y2', y2);
-    newLine.setAttribute('stroke', color);
-
-    return newLine;
+    return values.map(value => this.options.height * value / maxValue);
   }
 }

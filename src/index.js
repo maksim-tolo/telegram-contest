@@ -1,10 +1,10 @@
-import Drawer from './drawer';
+import SvgChart from './svg-chart';
 
 import chartData from './chart_data';
 
 export default class App {
   constructor() {
     this.charts = chartData.map(chart =>
-      (new Drawer()).prepareData(chart));
+      (new SvgChart()).prepareData(chart));
   }
 }

@@ -10,6 +10,12 @@ export const dataExtractor = (data, field) =>
   (data.columns.find(([columnField]) =>
     columnField === field) || []).slice(1);
 
+export const isUndefined = value => value === undefined;
+
+export const filterEmpty = object => Object.keys(object)
+  .reduce((acc, key) => isUndefined(object[key]) ?
+    acc : Object.assign(acc, { [key]: object[key] }), {});
+
 export const max = arr => Math.max(...arr);
 
 export const min = arr => Math.min(...arr);
