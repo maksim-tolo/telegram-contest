@@ -10,8 +10,9 @@ export const dataExtractor = (data, field) =>
   (data.columns.find(([columnField]) =>
     columnField === field) || []).slice(1);
 
-export const max = arr => Math.max(arr);
+export const max = arr => Math.max(...arr);
 
-export const min = arr => Math.min(arr);
+export const min = arr => Math.min(...arr);
 
+// TODO: Can be optimized
 export const extent = arr => [min(arr), max(arr)];
