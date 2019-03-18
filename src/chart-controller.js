@@ -55,41 +55,22 @@ export default class ChartController {
    * @public
    */
   scale(start = 0, end = this.data.length) {
-    const lines = this.data.lines.filter(({ visible }) => visible);
-    const visibleFields = lines.map(({ field }) => field);
-    const cacheKey = `${start}_${end}_${this.options.height}_${visibleFields.join('_')}`;
+    const lines = this.scaleY(start, end);
+    const xAxis = this.scaleX(start, end);
 
-    if (!this.cache[cacheKey]) {
-      const xAxis = this.data.xAxis.slice(start, end);
-      const parsedLines = lines.map(({ values, field }) => {
-        const newValues = values.slice(start, end);
-
-        return {
-          field,
-          values: newValues,
-          max: max(newValues)
-        };
-      });
-      const allLinesMax = max(parsedLines.map(line => line.max));
-
-      this.cache[cacheKey] = {
-        start,
-        end,
-        xAxis,
-        length: xAxis.length,
-        lines: parsedLines.reduce((acc, { field, values }) =>
-          Object.assign(acc, { [field]: this.scaleLine(values, allLinesMax) }), {})
-      };
-    }
-
-    this.data.scale = this.cache[cacheKey];
+    this.data.scale = {
+      start,
+      end,
+      lines,
+      xAxis
+    };
 
     return this;
   }
 
   /**
    * @public
-   * TODO
+   * TODO: Update line props
    */
   updateLine() {
     return this;
@@ -102,6 +83,43 @@ export default class ChartController {
     Object.assign(this.options, filterEmpty(options));
 
     return this;
+  }
+
+  scaleY(start, end) {
+    const lines = this.data.lines.filter(({ visible }) => visible);
+    const visibleFields = lines.map(({ field }) => field);
+    const cacheKey = `scaleY_${start}_${end}_${this.options.height}_${visibleFields.join('_')}`;
+
+    if (!this.cache[cacheKey]) {
+      const parsedLines = lines.map(({ values, field }) => {
+        const newValues = values.slice(start, end);
+
+        return {
+          field,
+          values: newValues,
+          max: max(newValues)
+        };
+      });
+      const allLinesMax = max(parsedLines.map(line => line.max));
+
+      this.cache[cacheKey] = parsedLines.reduce((acc, { field, values }) =>
+        Object.assign(acc, { [field]: this.scaleLine(values, allLinesMax) }), {});
+    }
+
+    return this.cache[cacheKey];
+  }
+
+  scaleX(start, end) {
+    const length = end - start;
+    const cacheKey = `scaleX_${length}_${this.options.width}`;
+
+    if (!this.cache[cacheKey]) {
+      const density = this.options.width / length;
+
+      this.cache[cacheKey] = Array.from({ length }, (v, k) => k * density);
+    }
+
+    return this.cache[cacheKey];
   }
 
   isLine(type) {
