@@ -8,8 +8,9 @@ import {
   dataExtractor,
   max,
   filterEmpty
-} from 'helper';
+} from './helper';
 
+// TODO: Move all view-related logic
 export default class ChartController {
   static get DEFAULT_OPTIONS() {
     return {
@@ -62,7 +63,8 @@ export default class ChartController {
       start,
       end,
       lines,
-      xAxis
+      xAxis,
+      length: xAxis.length
     };
 
     return this;
