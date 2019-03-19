@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "webpack src/index.js -o build/bundle.js"
+    "build": "webpack ./src/index.js -o ./build/bundle.js",
+    "start": "webpack-dev-server --entry ./src/index.js --output-filename build/bundle.js"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "webpack": "^4.29.6",
-    "webpack-cli": "^3.3.0"
+    "webpack-cli": "^3.3.0",
+    "webpack-dev-server": "^3.2.1"
   }
 }
