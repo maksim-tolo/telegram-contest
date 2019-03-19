@@ -49,7 +49,8 @@ export default class ChartController {
       lines,
       xAxis,
       length: xAxis.length,
-      yMax: max(lines.map(({ maxValue }) => maxValue))
+      yMax: max(lines.map(({ maxValue }) => maxValue)),
+      transform: { scaleX: 1, scaleY: 1, dx: 0, dy: 0 }
     };
 
     return this;
@@ -58,17 +59,23 @@ export default class ChartController {
   /**
    * @public
    */
-  scale(start = 0, end = this.data.length) {
-    const lines = this.scaleY(start, end);
-    const xAxis = this.scaleX(start, end);
+  scale() {
+    const lines = this.scaleY();
+    const xAxis = this.scaleX();
 
     this.data.scale = {
-      start,
-      end,
       lines,
       xAxis,
-      length: xAxis.length
     };
+
+    return this;
+  }
+
+  /**
+   * @public
+   */
+  transform(start = 0, end = this.data.length) {
+    this.data.transform = Object.assign({}, this.transformX(start, end), this.transformY(start, end));
 
     return this;
   }
@@ -90,45 +97,15 @@ export default class ChartController {
     return this;
   }
 
-  scaleY(start, end) {
-    const lines = this.data.lines.filter(({ visible }) => visible);
-    const visibleFields = lines.map(({ field }) => field);
-    const cacheKey = `scaleY_${start}_${end}_${this.options.height}_${visibleFields.join('_')}`;
-
-    if (!this.cache[cacheKey]) {
-      const parsedLines = lines.map(({ values, field }) => {
-        const newValues = values.slice(start, end);
-
-        return {
-          field,
-          values: newValues,
-          max: max(newValues)
-        };
-      });
-      const allLinesMax = max(parsedLines.map(line => line.max));
-
-      this.cache[cacheKey] = parsedLines.reduce((acc, { field, values }) =>
-        Object.assign(acc, { [field]: this.scaleLine(values, allLinesMax) }), {});
-    }
-
-    return this.cache[cacheKey];
+  scaleY() {
+    return this.data.lines.map(({ field, values }) => this.scaleLine(values, this.data.yMax));
   }
 
-  scaleX(start, end) {
-    const length = end - start;
-    const cacheKey = `scaleX_${length}_${this.options.width}`;
+  scaleX() {
+    const { length } = this.data;
+    const density = this.options.width / length;
 
-    if (!this.cache[cacheKey]) {
-      const density = this.options.width / length;
-
-      this.cache[cacheKey] = Array.from({ length }, (v, k) => k * density);
-    }
-
-    return this.cache[cacheKey];
-  }
-
-  transform(start = 0, end = this.data.length) {
-    return Object.assign({}, this.transformX(start, end), this.transformY(start, end));
+    return Array.from({ length }, (v, k) => k * density);
   }
 
   transformX(start, end) {
@@ -153,7 +130,7 @@ export default class ChartController {
 
   transformY(start, end) {
     const { height } = this.options;
-    const lines = this.data.lines.filter(({ visible }) => visible);
+    const lines = this.data.lines.filter(({ visible }) => visible); // TODO: Visible is representational property
     const visibleFields = lines.map(({ field }) => field);
     const cacheKey = `transformY_${start}_${end}_${this.options.height}_${visibleFields.join('_')}`;
 
