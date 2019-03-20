@@ -12,7 +12,7 @@ import {
 
 // TODO: Move all view-related logic
 // Clear cache when update the data
-export default class ChartController {
+export default class ChartModel {
   static get DEFAULT_OPTIONS() {
     return {
       width: 500,
@@ -30,7 +30,7 @@ export default class ChartController {
   }
 
   constructor(options = {}) {
-    this.options = Object.assign({}, ChartController.DEFAULT_OPTIONS, options);
+    this.options = Object.assign({}, ChartModel.DEFAULT_OPTIONS, options);
     this.cache = {};
   }
 
@@ -52,6 +52,8 @@ export default class ChartController {
       yMax: max(lines.map(({ maxValue }) => maxValue)),
       transform: { scaleX: 1, scaleY: 1, dx: 0, dy: 0 }
     };
+
+    this.cache = {};
 
     return this;
   }
@@ -92,13 +94,9 @@ export default class ChartController {
    * @public
    */
   updateOptions(options = {}) {
-    Object.assign(this.options, filterEmpty(options));
+    this.options = Object.assign({}, this.options, filterEmpty(options));
 
     return this;
-  }
-
-  scaleY() {
-    return this.data.lines.map(({ field, values }) => this.scaleLine(values, this.data.yMax));
   }
 
   scaleX() {
@@ -106,6 +104,10 @@ export default class ChartController {
     const density = this.options.width / length;
 
     return Array.from({ length }, (v, k) => k * density);
+  }
+
+  scaleY() {
+    return this.data.lines.map(({ field, values }) => this.scaleLine(values, this.data.yMax));
   }
 
   transformX(start, end) {
@@ -174,7 +176,6 @@ export default class ChartController {
     };
   }
 
-  // TODO: Optimize
   scaleLine(values, maxValue) {
     return values.map(value => this.options.height * value / maxValue);
   }
