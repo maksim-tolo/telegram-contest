@@ -2,46 +2,79 @@ import ChartModel from './chart-model';
 import Brush from './brush';
 
 export default class SvgChart {
-  constructor(data, options = {
-    withBrush: true,
-    brushHeight: 100,
-  }) {
+  static get DEFAULT_OPTIONS() {
+    return {
+      defaultLineColor: '#000',
+      defaultLineName: '',
+      withBrush: true,
+      brushHeight: 128,
+      width: 1024,
+      height: 512
+    };
+  }
+
+  constructor(data, options = {}) {
     this.vertexes = {};
     this.lines = {};
-
-    this.model = new ChartModel(options);
+    this.options = Object.assign({}, SvgChart.DEFAULT_OPTIONS, options);
+    this.model = new ChartModel(this.options);
     this.model.prepareData(data).scale();
-    const { width, height } = this.model.options;
 
-    if (options.withBrush) {
-      this.brush = new Brush({
-        width,
-        height,
-        brushHeight: options.brushHeight,
-      });
+    this.scale = this.scale.bind(this);
+
+    this.initDom();
+    this.setSize();
+    this.initBrush();
+  }
+
+  scale({ x, width }, { brushWidth }) {
+    const { length } = this.model.data;
+    const scaleStart = Math.round(x / brushWidth * length);
+    const scaleEnd = Math.round((x + width) / brushWidth * length);
+
+    if (scaleStart !== this.scaleStart || scaleEnd !== this.scaleEnd) {
+      this.model.transform(scaleStart, scaleEnd);
+      this.setSize();
     }
 
-    this.model.transform(options.scale ? 20 : 0, options.scale ? 50 : this.model.data.length);
-
-    this.initRoot();
+    this.scaleStart = scaleStart;
+    this.scaleEnd = scaleEnd;
   }
 
   // TODO: Add padding
-  initRoot() {
+  initDom() {
     if (!this.root) {
       this.root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
+      this.container.style.transition = 'transform .5s ease-out'; // TODO: Move to class
+
       this.root.appendChild(this.container);
     }
+  }
 
-    const { width, height } = this.model.options;
+  setSize() {
     const { scaleX, scaleY, dx, dy } = this.model.data.transform;
+    const { width, height, withBrush, brushHeight } = this.options;
+    const paddingBottom = withBrush ? brushHeight : 0;
 
-    this.container.setAttribute('transform', `scale(${scaleX},${scaleY}) translate(${dx}, ${dy})`);
-    this.root.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    this.container.setAttribute('transform', `scale(${scaleX}, ${scaleY}) translate(${dx}, ${dy})`);
+    this.root.setAttribute('viewBox', `0 0 ${width} ${height + paddingBottom}`);
     this.root.setAttribute('width', width);
-    this.root.setAttribute('height', height);
+    this.root.setAttribute('height', height + paddingBottom);
+  }
+
+  initBrush() {
+    const { width, height, brushHeight, withBrush } = this.options;
+
+    if (withBrush) {
+      this.brush = new Brush({
+        width,
+        height,
+        brushHeight,
+        onMove: this.scale,
+      });
+    }
   }
 
   /**
@@ -59,7 +92,7 @@ export default class SvgChart {
   resize({ width, height }) {
     this.model.updateOptions({ width, height });
     this.transform();
-    this.initRoot();
+    this.initDom();
   }
 
   transform() {
@@ -79,9 +112,9 @@ export default class SvgChart {
     }
 
     line.setAttribute('x1', x1);
-    line.setAttribute('y1', this.model.options.height - y1);
+    line.setAttribute('y1', this.options.height - y1);
     line.setAttribute('x2', x2);
-    line.setAttribute('y2', this.model.options.height - y2);
+    line.setAttribute('y2', this.options.height - y2);
     line.setAttribute('vector-effect', 'non-scaling-stroke');
 
     return line;
@@ -100,7 +133,7 @@ export default class SvgChart {
     }
 
     vertex.setAttribute('cx', x);
-    vertex.setAttribute('cy', this.model.options.height - y);
+    vertex.setAttribute('cy', this.options.height - y);
     vertex.setAttribute('stroke-width', '1');
     vertex.setAttribute('fill', 'transparent');
     vertex.setAttribute('vector-effect', 'non-scaling-stroke');
@@ -151,7 +184,7 @@ export default class SvgChart {
     node.appendChild(this.root);
 
     if (this.brush) {
-      this.brush.attach(node);
+      this.brush.attach(this.root);
     }
 
     return this;

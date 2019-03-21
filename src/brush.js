@@ -21,8 +21,6 @@ export default class Brush {
       this.options.initialWidth = this.options.initialWidthPercentage * this.options.brushWidth;
     }
 
-    this.maxX = this.options.brushWidth - this.options.initialWidth;
-
     this.dragStart = this.dragStart.bind(this);
     this.dragEnd = this.dragEnd.bind(this);
     this.moveRect = this.moveRect.bind(this);
@@ -32,29 +30,49 @@ export default class Brush {
     this.setSize();
     this.initRectPosition();
     this.updateRectPosition();
-    this.options.onMove(this.position);
+    this.options.onMove(this.position, this.options);
   }
 
   initDom() {
     if (!this.root) {
       this.root = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      this.rectContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      this.lineLeft = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      this.lineRight = document.createElementNS('http://www.w3.org/2000/svg', 'line');
 
       this.rect.setAttribute('stroke-width', '2');
       this.rect.setAttribute('fill', 'transparent');
       this.rect.setAttribute('stroke', 'currentColor');
 
       this.rect.style.cursor = 'move'; // TODO: Move to class
+      this.lineLeft.style.cursor = 'ew-resize'; // TODO: Move to class
+      this.lineRight.style.cursor = 'ew-resize'; // TODO: Move to class
 
       this.root.appendChild(this.container);
-      this.root.appendChild(this.rect);
+      this.root.appendChild(this.rectContainer);
+      this.rectContainer.appendChild(this.rect);
+      this.rectContainer.appendChild(this.lineLeft);
+      this.rectContainer.appendChild(this.lineRight);
+
+      this.initLinePosition(this.lineLeft, this.options.brushHeight);
+      this.initLinePosition(this.lineRight, this.options.brushHeight);
     }
+  }
+
+  // TODO: refactoring
+  initLinePosition(line, y2) {
+    line.setAttribute('y2', y2);
+    line.setAttribute('stroke-width', '5');
+    line.setAttribute('stroke', 'currentColor');
   }
 
   dragStart(e) {
     this.startX = e.pageX;
     this.startRectX = this.position.x;
+    this.startRectWidth = this.position.width;
+    this.dragTarget = e.target;
 
     document.addEventListener('mouseup', this.dragEnd);
     document.addEventListener('mousemove', this.moveRect);
@@ -63,6 +81,8 @@ export default class Brush {
   dragEnd() {
     this.startX = null;
     this.startRectX = null;
+    this.startRectWidth = null;
+    this.dragTarget = null;
 
     document.removeEventListener('mouseup', this.dragEnd);
     document.removeEventListener('mousemove', this.moveRect);
@@ -70,24 +90,38 @@ export default class Brush {
 
   moveRect(e) {
     const dx = this.startX - e.pageX;
-    const newX = Math.min(Math.max(this.startRectX - dx, 0), this.maxX);
 
-    if (newX !== this.position.x) {
-      this.position.x = newX;
+    let x = this.position.x;
+    let width = this.position.width;
+
+    if (this.dragTarget === this.rect) {
+      x = Math.min(Math.max(this.startRectX - dx, 0), this.options.brushWidth - this.startRectWidth);
+    } else if (this.dragTarget === this.lineLeft) {
+      const totalWidth = this.startRectX + this.startRectWidth;
+
+      x = Math.min(Math.max(this.startRectX - dx, 0), totalWidth - this.options.minWidth);
+      width = totalWidth - x;
+    } else if (this.dragTarget === this.lineRight) {
+      width = Math.min(Math.max(this.startRectWidth - dx, this.options.minWidth), this.options.brushWidth - this.startRectX);
+    }
+
+    if (x !== this.position.x || width !== this.position.width) {
+      this.position.x = x;
+      this.position.width = width;
       this.updateRectPosition();
-      this.options.onMove(this.position);
+      this.options.onMove(this.position, this.options);
     }
   }
 
   initListeners() {
-    this.rect.addEventListener('mousedown', this.dragStart);
+    this.rectContainer.addEventListener('mousedown', this.dragStart);
   }
 
   initRectPosition() {
-    const { initialWidth, brushHeight } = this.options;
+    const { initialWidth, brushHeight, brushWidth } = this.options;
 
     this.position = {
-      x: this.maxX,
+      x: brushWidth - initialWidth,
       y: 0,
       width: initialWidth,
       height: brushHeight
@@ -97,10 +131,11 @@ export default class Brush {
   updateRectPosition() {
     const { x, y, width, height } = this.position;
 
-    this.rect.setAttribute('x', x);
-    this.rect.setAttribute('y', y);
+    this.rectContainer.setAttribute('transform', `translate(${x}, ${y})`);
     this.rect.setAttribute('width', width);
     this.rect.setAttribute('height', height);
+    this.lineRight.setAttribute('x1', width);
+    this.lineRight.setAttribute('x2', width);
   }
 
   setSize() {

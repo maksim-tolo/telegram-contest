@@ -15,8 +15,6 @@ import {
 export default class ChartModel {
   static get DEFAULT_OPTIONS() {
     return {
-      width: 500,
-      height: 500,
       lineType: TYPES.LINE,
       xAxisType: TYPES.X_AXIS,
       defaultLineColor: '#000',
@@ -113,12 +111,10 @@ export default class ChartModel {
   transformX(start, end) {
     const { length } = this.data;
     const { width } = this.options;
-    const newLength = end - start;
-    const cacheKey = `transformX_${newLength}_${width}`;
+    const cacheKey = `transformX_${start}_${end}_${width}`;
 
     if (!this.cache[cacheKey]) {
-
-      const scaleX = length / newLength;
+      const scaleX = length / (end - start);
       const dx = - ((width / length) * start);
 
       this.cache[cacheKey] = {
