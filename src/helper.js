@@ -17,8 +17,3 @@ export const filterEmpty = object => Object.keys(object)
     acc : Object.assign(acc, { [key]: object[key] }), {});
 
 export const max = arr => Math.max(...arr);
-
-export const min = arr => Math.min(...arr);
-
-// TODO: Can be optimized
-export const extent = arr => [min(arr), max(arr)];

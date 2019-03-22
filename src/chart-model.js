@@ -75,7 +75,10 @@ export default class ChartModel {
    * @public
    */
   transform(start = 0, end = this.data.length) {
-    this.data.transform = Object.assign({}, this.transformX(start, end), this.transformY(start, end));
+    this.data.transform = Object.assign({
+      start,
+      end,
+    }, this.transformX(start, end), this.transformY(start, end));
 
     return this;
   }
@@ -84,7 +87,13 @@ export default class ChartModel {
    * @public
    * TODO: Update line props
    */
-  updateLine() {
+  updateLine(lineIndex, options) {
+    const line = this.data.lines[lineIndex];
+
+    if (line) {
+      Object.assign(line, options);
+    }
+
     return this;
   }
 
@@ -105,7 +114,7 @@ export default class ChartModel {
   }
 
   scaleY() {
-    return this.data.lines.map(({ field, values }) => this.scaleLine(values, this.data.yMax));
+    return this.data.lines.map(({ values }) => this.scaleLine(values, this.data.yMax));
   }
 
   transformX(start, end) {

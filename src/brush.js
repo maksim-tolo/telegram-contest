@@ -1,7 +1,7 @@
 export default class Brush {
   static get DEFAULT_OPTIONS() {
     return {
-      minWidthPercentage: 0.01,
+      minWidthPercentage: 0.02,
       initialWidthPercentage: 0.1,
       onMove() {}
     };
@@ -12,6 +12,8 @@ export default class Brush {
       brushHeight: options.height,
       brushWidth: options.width
     }, options);
+
+    this.lines = [];
 
     if (!this.options.minWidth) {
       this.options.minWidth = this.options.minWidthPercentage * this.options.brushWidth;
@@ -26,7 +28,6 @@ export default class Brush {
     this.moveRect = this.moveRect.bind(this);
 
     this.initDom();
-    this.initListeners();
     this.setSize();
     this.initRectPosition();
     this.updateRectPosition();
@@ -42,9 +43,9 @@ export default class Brush {
       this.lineLeft = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       this.lineRight = document.createElementNS('http://www.w3.org/2000/svg', 'line');
 
-      this.rect.setAttribute('stroke-width', '2');
+      this.rect.setAttribute('stroke-width', '1');
       this.rect.setAttribute('fill', 'transparent');
-      this.rect.setAttribute('stroke', 'currentColor');
+      this.rect.setAttribute('stroke', '#bbd9ec80');
 
       this.rect.style.cursor = 'move'; // TODO: Move to class
       this.lineLeft.style.cursor = 'ew-resize'; // TODO: Move to class
@@ -56,6 +57,10 @@ export default class Brush {
       this.rectContainer.appendChild(this.lineLeft);
       this.rectContainer.appendChild(this.lineRight);
 
+      // TODO: Refactoring
+      this.lineLeft.setAttribute('transform', `translate(${4}, 0)`);
+      this.lineRight.setAttribute('transform', `translate(${-4}, 0)`);
+
       this.initLinePosition(this.lineLeft, this.options.brushHeight);
       this.initLinePosition(this.lineRight, this.options.brushHeight);
     }
@@ -64,8 +69,8 @@ export default class Brush {
   // TODO: refactoring
   initLinePosition(line, y2) {
     line.setAttribute('y2', y2);
-    line.setAttribute('stroke-width', '5');
-    line.setAttribute('stroke', 'currentColor');
+    line.setAttribute('stroke-width', '8');
+    line.setAttribute('stroke', '#bbd9ec80');
   }
 
   dragStart(e) {
@@ -113,8 +118,12 @@ export default class Brush {
     }
   }
 
-  initListeners() {
+  addListeners() {
     this.rectContainer.addEventListener('mousedown', this.dragStart);
+  }
+
+  removeListeners() {
+    this.rectContainer.removeEventListener('mousedown', this.dragStart);
   }
 
   initRectPosition() {
@@ -147,13 +156,29 @@ export default class Brush {
     this.container.setAttribute('transform', `scale(${scaleX}, ${scaleY})`);
   }
 
-  render(nodes) {
-    nodes.forEach(node => this.container.appendChild(node));
+  render(lines = []) {
+    this.lines = lines;
+
+    lines.forEach(node => this.container.appendChild(node));
   }
 
-  attach(node) {
+  attach(node, children) {
+    this.render(children);
     node.appendChild(this.root);
+    this.addListeners();
+  }
 
-    return this;
+  detach(node) {
+    node.removeChild(this.root);
+    this.removeListeners();
+    this.root = null;
+  }
+
+  toggleLineVisibility(lineIndex, visible) {
+    if (visible) {
+      this.lines[lineIndex].setAttribute('stroke-width', 1);
+    } else {
+      this.lines[lineIndex].setAttribute('stroke-width', 0);
+    }
   }
 }
