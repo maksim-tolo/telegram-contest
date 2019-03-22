@@ -48,13 +48,19 @@ export default class SvgChart {
 
   // TODO: Add padding
   initDom() {
-    if (!this.root) {
-      this.root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    if (!this.svg) {
+      this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      this.root = document.createElement('div');
+      this.checkboxesContainer = document.createElement('div');
+
+      this.checkboxesContainer.className = 'checkboxesContainer';
 
       this.container.style.transition = 'transform .2s'; // TODO: Move to class
 
-      this.root.appendChild(this.container);
+      this.svg.appendChild(this.container);
+      this.root.appendChild(this.svg);
+      this.root.appendChild(this.checkboxesContainer);
     }
   }
 
@@ -65,9 +71,9 @@ export default class SvgChart {
       const paddingBottom = withBrush ? brushHeight : 0;
 
       this.container.setAttribute('transform', `scale(${scaleX}, ${scaleY}) translate(${dx}, ${dy})`);
-      this.root.setAttribute('viewBox', `0 0 ${width} ${height + paddingBottom}`);
-      this.root.setAttribute('width', width);
-      this.root.setAttribute('height', height + paddingBottom);
+      this.svg.setAttribute('viewBox', `0 0 ${width} ${height + paddingBottom}`);
+      this.svg.setAttribute('width', width);
+      this.svg.setAttribute('height', height + paddingBottom);
     }
   }
 
@@ -208,11 +214,11 @@ export default class SvgChart {
     node.appendChild(this.root);
 
     if (this.brush) {
-      this.brush.attach(this.root, this.lines.map(line => line.cloneNode(false)));
+      this.brush.attach(this.svg, this.lines.map(line => line.cloneNode(false)));
     }
 
     if (this.checkboxes) {
-      this.checkboxes.forEach(checkbox => checkbox.attach(node));
+      this.checkboxes.forEach(checkbox => checkbox.attach(this.checkboxesContainer));
     }
   }
 }

@@ -3,8 +3,8 @@
     font-family: "Helvetica Neue";
 }
 
-.input {
-    display: none;
+.checkboxesContainer {
+    display: flex;
 }
 
 .container {
@@ -13,6 +13,11 @@
     border: 2px solid #e4eaef;
     display: inline-block;
     border-radius: 30px;
+    margin-right: 20px;
+}
+
+.input {
+    display: none;
 }
 
 .checkbox {

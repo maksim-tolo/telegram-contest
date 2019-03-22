@@ -10,6 +10,7 @@ export default class Checkbox {
   constructor(options = {}) {
     this.options = Object.assign({}, Checkbox.DEFAULT_OPTIONS, options);
     this.root = document.createElement('div');
+    this.root.className = 'container';
   }
 
   addListeners() {
@@ -26,13 +27,11 @@ export default class Checkbox {
     const { label, color } = this.options;
 
     this.root.innerHTML = `
-      <div class="container">
-        <label class="checkbox">
-            <input type="checkbox" class="input" checked />
-            <span class="tick" style="border-color: ${color}"></span>
-            <span class="label">${label}</span>
-        </label>
-      </div>
+      <label class="checkbox">
+        <input type="checkbox" class="input" checked />
+        <span class="tick" style="border-color: ${color}"></span>
+        <span class="label">${label}</span>
+      </label>
     `;
   }
 
