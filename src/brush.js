@@ -47,6 +47,7 @@ export default class Brush {
       this.rect.setAttribute('fill', 'transparent');
       this.rect.setAttribute('stroke', '#bbd9ec80');
 
+      this.container.style.transition = 'transform .2s'; // TODO: Move to class
       this.rect.style.cursor = 'move'; // TODO: Move to class
       this.lineLeft.style.cursor = 'ew-resize'; // TODO: Move to class
       this.lineRight.style.cursor = 'ew-resize'; // TODO: Move to class
@@ -158,6 +159,7 @@ export default class Brush {
 
   render(lines = []) {
     this.lines = lines;
+    this.linesVisibility = Array(this.lines.length).fill(true);
 
     lines.forEach(node => this.container.appendChild(node));
   }
@@ -174,11 +176,43 @@ export default class Brush {
     this.root = null;
   }
 
+  getYMaxOfVisibleLines() {
+    const { edges } = this.options;
+
+    let yMax = 0;
+
+    this.linesVisibility.forEach((isVisible, index) => {
+      if (isVisible && edges[index] > yMax) {
+        yMax = edges[index];
+      }
+    });
+
+    return yMax;
+  }
+
   toggleLineVisibility(lineIndex, visible) {
+    this.linesVisibility[lineIndex] = visible;
+
     if (visible) {
-      this.lines[lineIndex].setAttribute('stroke-width', 1);
+      this.lines[lineIndex].setAttribute('stroke-width', 2);
     } else {
       this.lines[lineIndex].setAttribute('stroke-width', 0);
+    }
+
+    this.scale();
+  }
+
+  scale() {
+    const visibleYMax = this.getYMaxOfVisibleLines();
+
+    if (visibleYMax) {
+      const { width, height, brushHeight, brushWidth, yMax } = this.options;
+      const scaleYVisible = yMax / visibleYMax;
+      const dy = height / scaleYVisible - height;
+      const scaleX = brushWidth / width;
+      const scaleY = brushHeight / height * scaleYVisible;
+
+      this.container.setAttribute('transform', `scale(${scaleX}, ${scaleY}) translate(0, ${dy})`);
     }
   }
 }

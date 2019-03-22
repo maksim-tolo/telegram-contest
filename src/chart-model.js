@@ -42,12 +42,14 @@ export default class ChartModel {
     const xAxisField = fields.find((field, index) => this.isXAxis(types[index]));
     const xAxis = this.options.dataExtractor(data, xAxisField);
     const lines = linesFields.map(field => this.extractLine(data, field));
+    const edges = lines.map(({ maxValue }) => maxValue);
 
     this.data = {
       lines,
       xAxis,
+      edges,
       length: xAxis.length,
-      yMax: max(lines.map(({ maxValue }) => maxValue)),
+      yMax: max(edges),
       transform: { scaleX: 1, scaleY: 1, dx: 0, dy: 0 }
     };
 

@@ -73,12 +73,15 @@ export default class SvgChart {
 
   initBrush() {
     const { width, height, brushHeight, withBrush } = this.options;
+    const { yMax, edges } = this.model.data;
 
     if (withBrush) {
       this.brush = new Brush({
         width,
         height,
         brushHeight,
+        yMax,
+        edges,
         onMove: this.scale,
       });
     }
@@ -174,6 +177,8 @@ export default class SvgChart {
     path.setAttribute('vector-effect', 'non-scaling-stroke');
     path.setAttribute('stroke-width', '2');
     path.setAttribute('fill', 'none');
+
+    path.style.transition = 'stroke-width .1s'; // TODO: Move to class
 
     return path;
   }

@@ -21,6 +21,7 @@
     align-items: center;
     transition: color 250ms cubic-bezier(.4, .0, .23, 1);
     cursor: pointer;
+    user-select: none;
 }
 
 .label {
