@@ -17,20 +17,25 @@ export default class SvgChart {
       horizontalStrokesAmount: 5,
       brushOffset: 50,
       yAxisValuesPadding: 5,
-      YAxisValuesAnimationDuration: 200
+      YAxisValuesAnimationDuration: 200,
+      strokeWidth: 2,
+      vertexRadius: 5
     };
   }
 
   constructor(data, options = {}) {
-    // this.vertexes = {};
     this.lines = [];
+    this.verticalStrokes = [];
     this.allLinesHidden = false;
     this.options = Object.assign({}, SvgChart.DEFAULT_OPTIONS, options);
     this.model = new ChartModel(this.options);
     this.model.prepareData(data).scale();
+    this.step = this.options.width / this.model.data.length;
     this.allLinesHidden = this.isAllLinesHidden();
 
     this.scale = this.scale.bind(this);
+    this.showVerticalStroke = this.showVerticalStroke.bind(this);
+    this.hideVerticalStroke = this.hideVerticalStroke.bind(this);
     // this.updateYAxisValues = debounce(this.updateYAxisValues.bind(this), this.options.YAxisValuesAnimationDuration);
 
     this.initDom();
@@ -47,6 +52,7 @@ export default class SvgChart {
     if (scaleStart !== this.scaleStart || scaleEnd !== this.scaleEnd) {
       this.model.transform(scaleStart, scaleEnd);
       this.setSize();
+      this.hideVerticalStroke();
     }
 
     this.scaleStart = scaleStart;
@@ -62,6 +68,7 @@ export default class SvgChart {
       this.horizontalStrokesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.yAxisValuesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      this.vertexesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.root = document.createElement('div');
       this.checkboxesContainer = document.createElement('div');
 
@@ -136,7 +143,7 @@ export default class SvgChart {
     this.allLinesHidden = this.isAllLinesHidden();
 
     if (visible) {
-      this.lines[lineIndex].setAttribute('stroke-width', 2);
+      this.lines[lineIndex].setAttribute('stroke-width', this.options.strokeWidth);
     } else {
       this.lines[lineIndex].setAttribute('stroke-width', 0);
     }
@@ -161,26 +168,101 @@ export default class SvgChart {
     this.initDom();
   }
 
-  getVertex({ x, y, r = 2, key }) {
-    const vertexKey = `vertex_${key}`;
+  showVertexes(parent) {
+    const { scaleX, scaleY } = this.model.data.transform;
+    const { vertexRadius } = this.options;
+    const nodes = parent.children;
+    const length = nodes.length;
 
-    let vertex = this.vertexes[vertexKey];
+    this.showedVertexes = [];
 
-    if (!vertex) {
-      vertex = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      vertex.setAttribute('r', r);
+    for (let i = 0; i < length; i++) {
+      const node = nodes[i];
 
-      this.vertexes[vertexKey] = vertex;
+      if (node.nodeName === 'ellipse') {
+        node.setAttribute('rx', vertexRadius / scaleX);
+        node.setAttribute('ry', vertexRadius / scaleY);
+
+        this.showedVertexes.push(node);
+      }
     }
+  }
 
-    vertex.setAttribute('cx', x);
-    vertex.setAttribute('cy', this.options.height - y);
-    vertex.setAttribute('stroke-width', '1');
-    vertex.setAttribute('fill', 'transparent');
-    vertex.setAttribute('vector-effect', 'non-scaling-stroke');
-    vertex.setAttribute('data-key', key);
+  hideVertexes() {
+    if (this.showedVertexes) {
+      this.showedVertexes.forEach((vertex) => {
+        vertex.setAttribute('ry', '0');
+        vertex.setAttribute('ry', '0');
 
-    return vertex;
+        this.showedVertexes = null;
+      });
+    }
+  }
+
+  renderVerticalStrokes() {
+    const { xAxis } = this.model.data;
+    const { height } = this.options;
+
+    let line;
+    let g;
+
+    xAxis.forEach((x, index) => {
+      const xPosition = this.step * index;
+
+      if (!line) {
+        line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('stroke', 'transparent');
+        line.setAttribute('y1', '0');
+        line.setAttribute('stroke-width', this.step);
+        line.setAttribute('y2', height);
+      } else {
+        line = line.cloneNode(false);
+      }
+
+      if (!g) {
+        g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      } else {
+        g = g.cloneNode(false);
+      }
+
+      line.setAttribute('x1', xPosition);
+      line.setAttribute('x2', xPosition);
+
+      g.appendChild(line);
+
+      this.verticalStrokes.push(g);
+
+      this.vertexesContainer.appendChild(g);
+    })
+  }
+
+  renderVertexes({ line, xAxis, color = '#000' }) {
+    const { strokeWidth, height } = this.options;
+
+    let vertex;
+
+    line.forEach((y, index) => {
+      if (!vertex) {
+        vertex = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        vertex.setAttribute('ry', '0');
+        vertex.setAttribute('ry', '0');
+        vertex.setAttribute('fill', '#fff');
+        vertex.setAttribute('stroke-width', strokeWidth);
+        vertex.setAttribute('vector-effect', 'non-scaling-stroke');
+        vertex.setAttribute('stroke', color);
+      } else {
+        vertex = vertex.cloneNode(false);
+      }
+
+      vertex.setAttribute('cx', xAxis[index]);
+      vertex.setAttribute('cy', height - y);
+
+      const container = this.verticalStrokes[index];
+
+      if (container) {
+        container.appendChild(vertex);
+      }
+    });
   }
 
   renderLine({ line, xAxis, color = '#000'}) {
@@ -199,7 +281,7 @@ export default class SvgChart {
     path.setAttribute('stroke', color);
     path.setAttribute('d', d);
     path.setAttribute('vector-effect', 'non-scaling-stroke');
-    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-width', this.options.strokeWidth);
     path.setAttribute('fill', 'none');
 
     path.style.transition = 'stroke-width .1s'; // TODO: Move to class
@@ -215,23 +297,35 @@ export default class SvgChart {
       yAxisValuesPadding
     } = this.options;
 
+    let line;
+    let text;
+
     if (horizontalStrokesAmount) {
       const diff = height / (horizontalStrokesAmount + 1);
 
       for (let i = 0; i <= horizontalStrokesAmount; i++) {
-        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        if (!line) {
+          line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('stroke', '#e4eaef');
+          line.setAttribute('x1', '0');
+          line.setAttribute('stroke-width', '1');
+          line.setAttribute('x2', width);
+        } else {
+          line = line.cloneNode(false);
+        }
+
+        if (!text) {
+          text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('class', 'yAxisValue');
+        } else {
+          text = text.cloneNode(false);
+        }
+
         const y = height - (diff * i);
 
-        line.setAttribute('stroke', '#e4eaef');
-        line.setAttribute('x1', 0);
         line.setAttribute('y1', y);
-        line.setAttribute('x2', width);
         line.setAttribute('y2', y);
-        line.setAttribute('stroke-width', '1');
-
         text.setAttribute('transform', `translate(${yAxisValuesPadding}, ${y - yAxisValuesPadding})`);
-        text.setAttribute('class', 'yAxisValue');
 
         if (i === 0) {
           text.textContent = '0';
@@ -248,8 +342,10 @@ export default class SvgChart {
   }
 
   updateYAxisValues() {
-    this.animateYAxisValues();
-    this.setYAxisValues();
+    if (!this.allLinesHidden) {
+      this.animateYAxisValues();
+      this.setYAxisValues();
+    }
   }
 
   animateYAxisValues() {
@@ -276,7 +372,7 @@ export default class SvgChart {
       this.horizontalStrokesContainer.setAttribute('class', yAxisValuesContainerClass);
 
       const prevYAxisValuesContainerClass = this.prevScaleY > scaleY ? 'fadeOutDown' : 'fadeOutUp';
-      
+
       prevYAxisValuesContainer.setAttribute('class', prevYAxisValuesContainerClass);
       prevHorizontalStrokesContainer.setAttribute('class', prevYAxisValuesContainerClass);
 
@@ -306,9 +402,16 @@ export default class SvgChart {
     const { scale: { xAxis, lines } } = this.model.data;
 
     this.renderHorizontalStrokes();
+    this.renderVerticalStrokes();
 
     this.lines = lines.map((line, lineIndex) => {
       const { color } = this.model.data.lines[lineIndex]; // TODO: fix
+
+      this.renderVertexes({
+        line,
+        xAxis,
+        color
+      });
 
       return this.renderLine({
         line,
@@ -318,6 +421,43 @@ export default class SvgChart {
     });
 
     this.lines.forEach(line => this.container.appendChild(line));
+    this.container.appendChild(this.vertexesContainer);
+  }
+
+  showVerticalStroke(e) {
+    const node = e.target;
+
+    if (node.nodeName === 'line' && this.previusHoveredStroke !== node) {
+      this.hideVerticalStroke();
+
+      node.setAttribute('stroke', '#e4eaef');
+      node.setAttribute('vector-effect', 'non-scaling-stroke');
+      node.setAttribute('stroke-width', '1');
+      this.previusHoveredStroke = node;
+
+      this.showVertexes(node.parentNode);
+    }
+  }
+
+  hideVerticalStroke() {
+    if (this.previusHoveredStroke) {
+      this.previusHoveredStroke.setAttribute('stroke', 'transparent');
+      this.previusHoveredStroke.setAttribute('vector-effect', 'default');
+      this.previusHoveredStroke.setAttribute('stroke-width', this.step);
+      this.previusHoveredStroke = null;
+
+      this.hideVertexes();
+    }
+  }
+
+  addListeners() {
+    this.vertexesContainer.addEventListener('mouseover', this.showVerticalStroke);
+    this.svg.addEventListener('mouseleave', this.hideVerticalStroke);
+  }
+
+  removeListeners() {
+    this.vertexesContainer.removeEventListener('mouseover', this.showVerticalStroke);
+    this.svg.removeEventListener('mouseleave', this.hideVerticalStroke);
   }
 
   /**
@@ -335,5 +475,22 @@ export default class SvgChart {
     if (this.checkboxes) {
       this.checkboxes.forEach(checkbox => checkbox.attach(this.checkboxesContainer));
     }
+
+    this.addListeners();
+  }
+
+  detach(node) {
+    if (this.brush) {
+      this.brush.detach(this.svg);
+    }
+
+    if (this.checkboxes) {
+      this.checkboxes.forEach(checkbox => checkbox.detach(this.checkboxesContainer));
+    }
+
+    node.removeChild(this.root);
+    this.removeListeners();
+
+    this.root = null;
   }
 }
