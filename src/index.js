@@ -1,8 +1,22 @@
 import SvgChart from './svg-chart';
 
-import chartData from './chart_data';
+import chartData from './chart-data';
 
-const root = document.getElementById('root');
+import './index.css';
 
-const charts = chartData.map(chart =>
-  (new SvgChart(chart)).attach(root).render());
+function init() {
+  const root = document.getElementById('root');
+  const width = Math.min(root.scrollWidth, 1024);
+
+  chartData.forEach((data) => {
+    const chart = new SvgChart(data, {
+      width,
+      brushHeight: 64,
+      height: 512
+    });
+
+    chart.attach(root);
+  });
+}
+
+window.addEventListener('load', init);

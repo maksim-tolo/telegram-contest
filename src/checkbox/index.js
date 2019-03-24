@@ -1,3 +1,9 @@
+import { classNames } from '../helper';
+
+import styles from './index.module.css';
+
+const cx = classNames.bind(styles);
+
 export default class Checkbox {
   static get DEFAULT_OPTIONS() {
     return {
@@ -10,16 +16,16 @@ export default class Checkbox {
   constructor(options = {}) {
     this.options = Object.assign({}, Checkbox.DEFAULT_OPTIONS, options);
     this.root = document.createElement('div');
-    this.root.className = 'container';
+    this.root.className = cx('container');
   }
 
   addListeners() {
-    this.root.querySelector('.input')
+    this.root.querySelector('.' + cx('input'))
       .addEventListener('change', this.options.onChange);
   }
 
   removeListeners() {
-    this.root.querySelector('.input')
+    this.root.querySelector('.' + cx('input'))
       .removeEventListener('change', this.options.onChange);
   }
 
@@ -27,10 +33,10 @@ export default class Checkbox {
     const { label, color } = this.options;
 
     this.root.innerHTML = `
-      <label class="checkbox">
-        <input type="checkbox" class="input" checked />
-        <span class="tick" style="border-color: ${color}"></span>
-        <span class="label">${label}</span>
+      <label class="${cx('checkbox')}">
+        <input type="checkbox" class="${cx('input')}" checked />
+        <span class="${cx('tick')}" style="border-color: ${color}"></span>
+        <span class="${cx('label')}">${label}</span>
       </label>
     `;
   }

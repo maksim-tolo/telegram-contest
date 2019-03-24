@@ -1,17 +1,23 @@
-import { isNumber } from '../helper';
+import { isNumber, classNames } from '../helper';
+
+import styles from './index.module.css';
+
+const cx = classNames.bind(styles);
 
 export default class Tooltip {
   static get DEFAULT_OPTIONS() {
     return {
-      offset: 10
+      offset: 10,
+      width: 100
     };
   }
 
   constructor(options = {}) {
     this.options = Object.assign({}, Tooltip.DEFAULT_OPTIONS, options);
     this.root = document.createElement('div');
-    this.root.className = 'tooltipContainer';
+    this.root.className = cx('tooltipContainer');
     this.root.style.top=`${this.options.offset}px`;
+    this.root.style.width=`${this.options.width}px`;
     this.toggleVisibility(false);
   }
 

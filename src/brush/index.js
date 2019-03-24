@@ -82,6 +82,8 @@ export default class Brush {
 
     document.addEventListener('mouseup', this.dragEnd);
     document.addEventListener('mousemove', this.moveRect);
+    document.addEventListener('touchend', this.dragEnd);
+    document.addEventListener('touchmove', this.moveRect);
   }
 
   dragEnd() {
@@ -92,6 +94,8 @@ export default class Brush {
 
     document.removeEventListener('mouseup', this.dragEnd);
     document.removeEventListener('mousemove', this.moveRect);
+    document.removeEventListener('touchend', this.dragEnd);
+    document.removeEventListener('moveRect', this.moveRect);
   }
 
   moveRect(e) {
@@ -121,10 +125,12 @@ export default class Brush {
 
   addListeners() {
     this.rectContainer.addEventListener('mousedown', this.dragStart);
+    this.rectContainer.addEventListener('touchstart', this.dragStart);
   }
 
   removeListeners() {
     this.rectContainer.removeEventListener('mousedown', this.dragStart);
+    this.rectContainer.removeEventListener('touchstart', this.dragStart);
   }
 
   initRectPosition() {

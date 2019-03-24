@@ -1,9 +1,18 @@
-import ChartModel from './chart-model';
-import Brush from './brush';
-import Checkbox from './checkbox';
-import Tooltip from './tooltip';
+import ChartModel from '../chart-model';
+import Brush from '../brush';
+import Checkbox from '../checkbox';
+import Tooltip from '../tooltip';
 
-import { debounce, tooltipXAxisDataFormatter, xAxisDataFormatter } from './helper';
+import {
+  debounce,
+  tooltipXAxisDataFormatter,
+  xAxisDataFormatter,
+  classNames
+} from '../helper';
+
+import styles from './index.module.css';
+
+const cx = classNames.bind(styles);
 
 export default class SvgChart {
   static get DEFAULT_OPTIONS() {
@@ -22,10 +31,13 @@ export default class SvgChart {
       brushOffset: 50,
       yAxisValuesPadding: 5,
       xAxisValuesPadding: 20,
-      YAxisValuesAnimationDuration: 200,
+      yAxisValuesAnimationDuration: 200,
+      xAxisValuesAnimationDuration: 200,
       strokeWidth: 2,
       vertexRadius: 5,
-      xAxisMaxTextWidth: 80
+      xAxisMaxTextWidth: 80,
+      tooltipWidth: 140,
+      tooltipOffset: 10
     };
   }
 
@@ -42,7 +54,8 @@ export default class SvgChart {
     this.scale = this.scale.bind(this);
     this.showVerticalStroke = this.showVerticalStroke.bind(this);
     this.hideVerticalStrokesAndTooltip = this.hideVerticalStrokesAndTooltip.bind(this);
-    // this.updateYAxisValues = debounce(this.updateYAxisValues.bind(this), this.options.YAxisValuesAnimationDuration);
+    // this.updateYAxisValues = debounce(this.updateYAxisValues.bind(this), this.options.yAxisValuesAnimationDuration);
+    this.animateXAxisValues = debounce(this.animateXAxisValues.bind(this), this.options.xAxisValuesAnimationDuration);
 
     this.initDom();
     this.setSize();
@@ -71,7 +84,7 @@ export default class SvgChart {
   // TODO: Add padding
   initDom() {
     if (!this.svg) {
-      const { YAxisValuesAnimationDuration } = this.options;
+      const { yAxisValuesAnimationDuration } = this.options;
 
       this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       this.horizontalStrokesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -82,10 +95,11 @@ export default class SvgChart {
       this.root = document.createElement('div');
       this.checkboxesContainer = document.createElement('div');
 
-      this.checkboxesContainer.className = 'checkboxesContainer';
-      this.horizontalStrokesContainer.style.animationDuration = `${YAxisValuesAnimationDuration}ms`;
-      this.yAxisValuesContainer.style.animationDuration = `${YAxisValuesAnimationDuration}ms`;
-      this.xAxisValuesContainer.style.animationDuration = `${YAxisValuesAnimationDuration}ms`;
+      this.checkboxesContainer.className = cx('checkboxesContainer');
+      this.root.className = cx('rootContainer');
+      this.horizontalStrokesContainer.style.animationDuration = `${yAxisValuesAnimationDuration}ms`;
+      this.yAxisValuesContainer.style.animationDuration = `${yAxisValuesAnimationDuration}ms`;
+      this.xAxisValuesContainer.style.animationDuration = `${yAxisValuesAnimationDuration}ms`;
 
       this.container.style.transition = 'transform .2s'; // TODO: Move to class
 
@@ -129,8 +143,17 @@ export default class SvgChart {
   }
 
   initTooltip() {
-    if (this.options.withTooltip) {
-      this.tooltip = new Tooltip();
+    const {
+      tooltipWidth,
+      withTooltip,
+      tooltipOffset,
+    } = this.options;
+
+    if (withTooltip) {
+      this.tooltip = new Tooltip({
+        width: tooltipWidth,
+        offset: tooltipOffset
+      });
     }
   }
 
@@ -188,7 +211,7 @@ export default class SvgChart {
 
   showVertexes(parent) {
     const { scaleX, scaleY } = this.model.data.transform;
-    const { vertexRadius } = this.options;
+    const { vertexRadius, tooltipWidth, tooltipOffset } = this.options;
     const nodes = parent.children;
     const length = nodes.length;
 
@@ -208,6 +231,7 @@ export default class SvgChart {
         if (line.visible) {
           node.setAttribute('rx', vertexRadius / scaleX);
           node.setAttribute('ry', vertexRadius / scaleY);
+          node.style.visibility = 'visible';
 
           this.showedVertexes.push(node);
 
@@ -219,7 +243,9 @@ export default class SvgChart {
         }
       } else if (node.nodeName === 'line') {
         title = node.__data__.value;
-        lineX = node.getBoundingClientRect().x;
+        const rootRect = this.root.getBoundingClientRect();
+
+        lineX= Math.min(rootRect.width - tooltipWidth - tooltipOffset, node.getBoundingClientRect().x - rootRect.x)
       }
     }
 
@@ -232,15 +258,15 @@ export default class SvgChart {
 
   updateTooltipContent(title, lines) {
       const linesValues = lines.map(({ value, title, color }) => (`
-      <div class="valueWrapper" style="color: ${color}">
-        <div class="laneValue">${value}</div>
-        <div class="lineName">${title}</div>
+      <div class="${cx('valueWrapper')}" style="color: ${color}">
+        <div class="${cx('laneValue')}">${value}</div>
+        <div class="${cx('lineName')}">${title}</div>
       </div>
     `)).join('');
 
       const content = `
-      <div class="tooltipTitle">${this.options.tooltipXAxisDataFormatter(title)}</div>
-      <div class="valuesContainer">${linesValues}</div>
+      <div class="${cx('tooltipTitle')}">${this.options.tooltipXAxisDataFormatter(title)}</div>
+      <div class="${cx('valuesContainer')}">${linesValues}</div>
     `;
 
       this.tooltip.updateContent(content);
@@ -250,10 +276,11 @@ export default class SvgChart {
     if (this.showedVertexes) {
       this.showedVertexes.forEach((vertex) => {
         vertex.setAttribute('ry', '0');
-        vertex.setAttribute('ry', '0');
-
-        this.showedVertexes = null;
+        vertex.setAttribute('rx', '0');
+        vertex.style.visibility = 'hidden';
       });
+
+      this.showedVertexes = null;
     }
   }
 
@@ -383,7 +410,7 @@ export default class SvgChart {
 
         if (!text) {
           text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          text.setAttribute('class', 'yAxisValue');
+          text.setAttribute('class', cx('yAxisValue'));
         } else {
           text = text.cloneNode(false);
         }
@@ -415,7 +442,7 @@ export default class SvgChart {
   }
 
   animateYAxisValues() {
-    const { YAxisValuesAnimationDuration } = this.options;
+    const { yAxisValuesAnimationDuration } = this.options;
     const { scaleY } = this.model.data.transform;
 
     const prevYAxisValuesContainer = this.yAxisValuesContainer;
@@ -427,17 +454,17 @@ export default class SvgChart {
         this.svg.removeChild(prevHorizontalStrokesContainer);
         this.yAxisValuesContainer.setAttribute('class', '');
         this.horizontalStrokesContainer.setAttribute('class', '');
-      }, YAxisValuesAnimationDuration);
+      }, yAxisValuesAnimationDuration);
 
       this.yAxisValuesContainer = this.yAxisValuesContainer.cloneNode(true);
       this.horizontalStrokesContainer = this.horizontalStrokesContainer.cloneNode(true);
 
-      const yAxisValuesContainerClass = this.prevScaleY > scaleY ? 'fadeInDown' : 'fadeInUp';
+      const yAxisValuesContainerClass = cx(this.prevScaleY > scaleY ? 'fadeInDown' : 'fadeInUp');
 
       this.yAxisValuesContainer.setAttribute('class', yAxisValuesContainerClass);
       this.horizontalStrokesContainer.setAttribute('class', yAxisValuesContainerClass);
 
-      const prevYAxisValuesContainerClass = this.prevScaleY > scaleY ? 'fadeOutDown' : 'fadeOutUp';
+      const prevYAxisValuesContainerClass = cx(this.prevScaleY > scaleY ? 'fadeOutDown' : 'fadeOutUp');
 
       prevYAxisValuesContainer.setAttribute('class', prevYAxisValuesContainerClass);
       prevHorizontalStrokesContainer.setAttribute('class', prevYAxisValuesContainerClass);
@@ -473,7 +500,7 @@ export default class SvgChart {
     for (let i = 0; i < valuesAmount; i++) {
       if (!text) {
         text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('class', 'xAxisValue');
+        text.setAttribute('class', cx('xAxisValue'));
       } else {
         text = text.cloneNode(false);
       }
@@ -484,9 +511,35 @@ export default class SvgChart {
 
   updateXAxisValues() {
     if (!this.allLinesHidden) {
-      // this.animateYAxisValues();
+      // this.animateXAxisValues();
       this.setXAxisValues();
     }
+  }
+
+  animateXAxisValues() {
+    const { xAxisValuesAnimationDuration } = this.options;
+    const { start, end } = this.model.data.transform;
+
+    const prevXAxisValuesContainer = this.xAxisValuesContainer;
+
+    if (this.prevStart && this.prevStart !== start) {
+      setTimeout(() => {
+        this.svg.removeChild(prevXAxisValuesContainer);
+        this.xAxisValuesContainer.setAttribute('class', '');
+      }, xAxisValuesAnimationDuration);
+
+      this.xAxisValuesContainer = this.xAxisValuesContainer.cloneNode(true);
+
+      const xAxisValuesContainerClass = cx(this.prevStart > start ? 'fadeInRight' : 'fadeInLeft');
+      const prevXAxisValuesContainerClass = cx(this.prevStart > start ? 'fadeInLeft' : 'fadeInRight');
+
+      this.xAxisValuesContainer.setAttribute('class', xAxisValuesContainerClass);
+      prevXAxisValuesContainer.setAttribute('class', prevXAxisValuesContainerClass);
+
+      this.svg.appendChild(this.xAxisValuesContainer);
+    }
+
+    this.prevStart = start;
   }
 
   setXAxisValues() {
@@ -506,9 +559,9 @@ export default class SvgChart {
         const index = Math.min(Math.round(start + (i * step)), xAxis.length - 1);
         const data = this.options.xAxisDataFormatter(xAxis[index]);
 
-        // child.setAttribute('x', i * diff);
-        // child.setAttribute('y', height + xAxisValuesPadding);
-        child.setAttribute('transform', `translate(${i * diff}, ${height + xAxisValuesPadding})`);
+        child.setAttribute('x', i * diff);
+        child.setAttribute('y', height + xAxisValuesPadding);
+        // child.setAttribute('transform', `translate(${i * diff}, ${height + xAxisValuesPadding})`);
         child.textContent = data;
         child.style.visibility = 'visible';
       } else {
@@ -581,19 +634,24 @@ export default class SvgChart {
     }
   }
 
+  // TODO: Add touch handlers
   addListeners() {
     this.vertexesContainer.addEventListener('mouseover', this.showVerticalStroke);
+    // this.vertexesContainer.addEventListener('touchmove', this.showVerticalStroke);
+    // this.vertexesContainer.addEventListener('touchstart', this.showVerticalStroke);
     this.svg.addEventListener('mouseleave', this.hideVerticalStrokesAndTooltip);
+    // this.vertexesContainer.addEventListener('touchend', this.hideVerticalStrokesAndTooltip, true);
+    // this.vertexesContainer.addEventListener('touchcancel', this.hideVerticalStrokesAndTooltip, true);
   }
 
   removeListeners() {
     this.vertexesContainer.removeEventListener('mouseover', this.showVerticalStroke);
+    // this.vertexesContainer.removeEventListener('touchmove', this.showVerticalStroke);
+    // this.vertexesContainer.removeEventListener('touchstart', this.showVerticalStroke);
     this.svg.removeEventListener('mouseleave', this.hideVerticalStrokesAndTooltip);
+    // document.removeEventListener('touchend', this.hideVerticalStrokesAndTooltip);
   }
 
-  /**
-   * @public
-   */
   attach(node) {
     this.render();
 
