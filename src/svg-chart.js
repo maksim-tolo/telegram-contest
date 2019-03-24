@@ -1,16 +1,19 @@
 import ChartModel from './chart-model';
 import Brush from './brush';
 import Checkbox from './checkbox';
+import Tooltip from './tooltip';
 
-import { debounce } from './helper';
+import { debounce, tooltipXAxisDataFormatter } from './helper';
 
 export default class SvgChart {
   static get DEFAULT_OPTIONS() {
     return {
+      tooltipXAxisDataFormatter,
       defaultLineColor: '#000',
       defaultLineName: '',
       withBrush: true,
       linesToggleable: true,
+      withTooltip: true,
       brushHeight: 128,
       width: 1024,
       height: 512,
@@ -35,13 +38,14 @@ export default class SvgChart {
 
     this.scale = this.scale.bind(this);
     this.showVerticalStroke = this.showVerticalStroke.bind(this);
-    this.hideVerticalStroke = this.hideVerticalStroke.bind(this);
+    this.hideVerticalStrokesAndTooltip = this.hideVerticalStrokesAndTooltip.bind(this);
     // this.updateYAxisValues = debounce(this.updateYAxisValues.bind(this), this.options.YAxisValuesAnimationDuration);
 
     this.initDom();
     this.setSize();
     this.initBrush();
     this.initCheckbox();
+    this.initTooltip();
   }
 
   scale({ x, width }, { brushWidth }) {
@@ -52,7 +56,7 @@ export default class SvgChart {
     if (scaleStart !== this.scaleStart || scaleEnd !== this.scaleEnd) {
       this.model.transform(scaleStart, scaleEnd);
       this.setSize();
-      this.hideVerticalStroke();
+      this.hideVerticalStrokesAndTooltip();
     }
 
     this.scaleStart = scaleStart;
@@ -118,6 +122,12 @@ export default class SvgChart {
     }
   }
 
+  initTooltip() {
+    if (this.options.withTooltip) {
+      this.tooltip = new Tooltip();
+    }
+  }
+
   initCheckbox() {
     const { linesToggleable } = this.options;
 
@@ -176,16 +186,56 @@ export default class SvgChart {
 
     this.showedVertexes = [];
 
+    const lines = [];
+    let title = '';
+    let lineX;
+
     for (let i = 0; i < length; i++) {
       const node = nodes[i];
 
       if (node.nodeName === 'ellipse') {
-        node.setAttribute('rx', vertexRadius / scaleX);
-        node.setAttribute('ry', vertexRadius / scaleY);
+        const { lineIndex, value } = node.__data__;
+        const line = this.model.data.lines[lineIndex];
 
-        this.showedVertexes.push(node);
+        if (line.visible) {
+          node.setAttribute('rx', vertexRadius / scaleX);
+          node.setAttribute('ry', vertexRadius / scaleY);
+
+          this.showedVertexes.push(node);
+
+          lines.push({
+            value,
+            title: line.name,
+            color: line.color
+          })
+        }
+      } else if (node.nodeName === 'line') {
+        title = node.__data__.value;
+        lineX = node.getBoundingClientRect().x;
       }
     }
+
+    if (this.tooltip) {
+      this.updateTooltipContent(title, lines);
+      this.tooltip.updatePosition({ x: lineX });
+      this.tooltip.toggleVisibility(true);
+    }
+  }
+
+  updateTooltipContent(title, lines) {
+      const linesValues = lines.map(({ value, title, color }) => (`
+      <div class="valueWrapper" style="color: ${color}">
+        <div class="laneValue">${value}</div>
+        <div class="lineName">${title}</div>
+      </div>
+    `)).join('');
+
+      const content = `
+      <div class="tooltipTitle">${this.options.tooltipXAxisDataFormatter(title)}</div>
+      <div class="valuesContainer">${linesValues}</div>
+    `;
+
+      this.tooltip.updateContent(content);
   }
 
   hideVertexes() {
@@ -228,16 +278,20 @@ export default class SvgChart {
       line.setAttribute('x1', xPosition);
       line.setAttribute('x2', xPosition);
 
+      line.__data__ = {
+        value: x
+      };
+
       g.appendChild(line);
 
       this.verticalStrokes.push(g);
-
       this.vertexesContainer.appendChild(g);
     })
   }
 
-  renderVertexes({ line, xAxis, color = '#000' }) {
+  renderVertexes({ line, xAxis, lineIndex, color = '#000' }) {
     const { strokeWidth, height } = this.options;
+    const { lines } = this.model.data;
 
     let vertex;
 
@@ -256,6 +310,11 @@ export default class SvgChart {
 
       vertex.setAttribute('cx', xAxis[index]);
       vertex.setAttribute('cy', height - y);
+
+      vertex.__data__ = {
+        lineIndex,
+        value: lines[lineIndex].values[index]
+      };
 
       const container = this.verticalStrokes[index];
 
@@ -410,7 +469,8 @@ export default class SvgChart {
       this.renderVertexes({
         line,
         xAxis,
-        color
+        color,
+        lineIndex
       });
 
       return this.renderLine({
@@ -450,14 +510,22 @@ export default class SvgChart {
     }
   }
 
+  hideVerticalStrokesAndTooltip() {
+    this.hideVerticalStroke();
+
+    if (this.tooltip) {
+      this.tooltip.toggleVisibility(false);
+    }
+  }
+
   addListeners() {
     this.vertexesContainer.addEventListener('mouseover', this.showVerticalStroke);
-    this.svg.addEventListener('mouseleave', this.hideVerticalStroke);
+    this.svg.addEventListener('mouseleave', this.hideVerticalStrokesAndTooltip);
   }
 
   removeListeners() {
     this.vertexesContainer.removeEventListener('mouseover', this.showVerticalStroke);
-    this.svg.removeEventListener('mouseleave', this.hideVerticalStroke);
+    this.svg.removeEventListener('mouseleave', this.hideVerticalStrokesAndTooltip);
   }
 
   /**
@@ -476,6 +544,10 @@ export default class SvgChart {
       this.checkboxes.forEach(checkbox => checkbox.attach(this.checkboxesContainer));
     }
 
+    if (this.tooltip) {
+      this.tooltip.attach(this.root);
+    }
+
     this.addListeners();
   }
 
@@ -486,6 +558,10 @@ export default class SvgChart {
 
     if (this.checkboxes) {
       this.checkboxes.forEach(checkbox => checkbox.detach(this.checkboxesContainer));
+    }
+
+    if (this.tooltip) {
+      this.tooltip.detach(this.root);
     }
 
     node.removeChild(this.root);

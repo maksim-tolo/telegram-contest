@@ -164,7 +164,7 @@ export default class ChartModel {
   }
 
   isXAxis(type) {
-    return type === this.options.lineType;
+    return type === this.options.xAxisType;
   }
 
   extractLine(data, field) {
