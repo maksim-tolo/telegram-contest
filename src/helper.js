@@ -18,6 +18,13 @@ export const tooltipXAxisDataFormatter = (value) => {
   return `${dayOfWeek}, ${month} ${date.getDate()}`;
 };
 
+export const xAxisDataFormatter = (value) => {
+  const date = new Date(value);
+  const month = MONTHS[date.getMonth()];
+
+  return `${month} ${date.getDate()}`;
+};
+
 export const dataExtractor = (data, field) =>
   (data.columns.find(([columnField]) =>
     columnField === field) || []).slice(1);

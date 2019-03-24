@@ -1,12 +1,20 @@
 * {
     box-sizing: border-box;
     font-family: "Helvetica Neue";
+
+    /*background: #262f3d;*/
 }
 
 /* TODO: Start Move */
 .checkboxesContainer {
     display: flex;
     margin-top: 20px;
+}
+
+.xAxisValue {
+    fill: #86949c;
+    user-select: none;
+    transition: transform, 0.2s;
 }
 
 .yAxisValue {
@@ -17,7 +25,7 @@
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translate3d(0, 100%, 0);
+        transform: translate3d(0, 20%, 0);
     }
 
     to {
@@ -34,7 +42,7 @@
 @keyframes fadeInDown {
     from {
         opacity: 0;
-        transform: translate3d(0, -100%, 0);
+        transform: translate3d(0, -20%, 0);
     }
 
     to {
@@ -55,7 +63,7 @@
 
     to {
         opacity: 0;
-        transform: translate3d(0, 100%, 0);
+        transform: translate3d(0, 20%, 0);
     }
 }
 
@@ -71,7 +79,7 @@
 
     to {
         opacity: 0;
-        transform: translate3d(0, -100%, 0);
+        transform: translate3d(0, -20%, 0);
     }
 }
 

@@ -32,7 +32,6 @@ export default class Brush {
     this.setSize();
     this.initRectPosition();
     this.updateRectPosition();
-    this.options.onMove(this.position, this.options);
   }
 
   initDom() {
@@ -169,6 +168,7 @@ export default class Brush {
     this.render(children);
     node.appendChild(this.root);
     this.addListeners();
+    this.options.onMove(this.position, this.options);
   }
 
   detach(node) {

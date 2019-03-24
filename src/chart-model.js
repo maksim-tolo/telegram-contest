@@ -50,7 +50,14 @@ export default class ChartModel {
       edges,
       length: xAxis.length,
       yMax: max(edges),
-      transform: { scaleX: 1, scaleY: 1, dx: 0, dy: 0 }
+      transform: {
+        scaleX: 1,
+        scaleY: 1,
+        dx: 0,
+        dy: 0,
+        start: 0,
+        end: xAxis.length
+      }
     };
 
     this.cache = {};
@@ -67,7 +74,7 @@ export default class ChartModel {
 
     this.data.scale = {
       lines,
-      xAxis,
+      xAxis
     };
 
     return this;
@@ -79,7 +86,7 @@ export default class ChartModel {
   transform(start = 0, end = this.data.length) {
     this.data.transform = Object.assign({
       start,
-      end,
+      end
     }, this.transformX(start, end), this.transformY(start, end));
 
     return this;
@@ -179,7 +186,7 @@ export default class ChartModel {
       name,
       field,
       maxValue,
-      visible: true,
+      visible: true
     };
   }
 
