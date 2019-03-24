@@ -2,6 +2,8 @@ import ChartModel from './chart-model';
 import Brush from './brush';
 import Checkbox from './checkbox';
 
+import { debounce } from './helper';
+
 export default class SvgChart {
   static get DEFAULT_OPTIONS() {
     return {
@@ -11,7 +13,11 @@ export default class SvgChart {
       linesToggleable: true,
       brushHeight: 128,
       width: 1024,
-      height: 512
+      height: 512,
+      horizontalStrokesAmount: 5,
+      brushOffset: 50,
+      yAxisValuesPadding: 5,
+      YAxisValuesAnimationDuration: 200
     };
   }
 
@@ -25,6 +31,7 @@ export default class SvgChart {
     this.allLinesHidden = this.isAllLinesHidden();
 
     this.scale = this.scale.bind(this);
+    // this.updateYAxisValues = debounce(this.updateYAxisValues.bind(this), this.options.YAxisValuesAnimationDuration);
 
     this.initDom();
     this.setSize();
@@ -49,16 +56,24 @@ export default class SvgChart {
   // TODO: Add padding
   initDom() {
     if (!this.svg) {
+      const { YAxisValuesAnimationDuration } = this.options;
+
       this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      this.horizontalStrokesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      this.yAxisValuesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.root = document.createElement('div');
       this.checkboxesContainer = document.createElement('div');
 
       this.checkboxesContainer.className = 'checkboxesContainer';
+      this.horizontalStrokesContainer.style.animationDuration = `${YAxisValuesAnimationDuration}ms`;
+      this.yAxisValuesContainer.style.animationDuration = `${YAxisValuesAnimationDuration}ms`;
 
       this.container.style.transition = 'transform .2s'; // TODO: Move to class
 
+      this.svg.appendChild(this.horizontalStrokesContainer);
       this.svg.appendChild(this.container);
+      this.svg.appendChild(this.yAxisValuesContainer);
       this.root.appendChild(this.svg);
       this.root.appendChild(this.checkboxesContainer);
     }
@@ -67,18 +82,20 @@ export default class SvgChart {
   setSize() {
     if (!this.allLinesHidden) {
       const { scaleX, scaleY, dx, dy } = this.model.data.transform;
-      const { width, height, withBrush, brushHeight } = this.options;
-      const paddingBottom = withBrush ? brushHeight : 0;
+      const { width, height, withBrush, brushHeight, brushOffset } = this.options;
+      const paddingBottom = withBrush ? brushHeight + brushOffset : 0;
 
       this.container.setAttribute('transform', `scale(${scaleX}, ${scaleY}) translate(${dx}, ${dy})`);
       this.svg.setAttribute('viewBox', `0 0 ${width} ${height + paddingBottom}`);
       this.svg.setAttribute('width', width);
       this.svg.setAttribute('height', height + paddingBottom);
     }
+
+    this.updateYAxisValues();
   }
 
   initBrush() {
-    const { width, height, brushHeight, withBrush } = this.options;
+    const { width, height, brushHeight, withBrush, brushOffset } = this.options;
     const { yMax, edges } = this.model.data;
 
     if (withBrush) {
@@ -88,6 +105,7 @@ export default class SvgChart {
         brushHeight,
         yMax,
         edges,
+        brushOffset,
         onMove: this.scale,
       });
     }
@@ -189,8 +207,105 @@ export default class SvgChart {
     return path;
   }
 
+  renderHorizontalStrokes() {
+    const {
+      horizontalStrokesAmount,
+      height,
+      width,
+      yAxisValuesPadding
+    } = this.options;
+
+    if (horizontalStrokesAmount) {
+      const diff = height / (horizontalStrokesAmount + 1);
+
+      for (let i = 0; i <= horizontalStrokesAmount; i++) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        const y = height - (diff * i);
+
+        line.setAttribute('stroke', '#e4eaef');
+        line.setAttribute('x1', 0);
+        line.setAttribute('y1', y);
+        line.setAttribute('x2', width);
+        line.setAttribute('y2', y);
+        line.setAttribute('stroke-width', '1');
+
+        text.setAttribute('transform', `translate(${yAxisValuesPadding}, ${y - yAxisValuesPadding})`);
+        text.setAttribute('class', 'yAxisValue');
+
+        if (i === 0) {
+          text.textContent = '0';
+          this.svg.appendChild(line);
+          this.svg.appendChild(text);
+        } else {
+          this.horizontalStrokesContainer.appendChild(line);
+          this.yAxisValuesContainer.appendChild(text);
+        }
+      }
+    }
+
+    this.updateYAxisValues();
+  }
+
+  updateYAxisValues() {
+    this.animateYAxisValues();
+    this.setYAxisValues();
+  }
+
+  animateYAxisValues() {
+    const { YAxisValuesAnimationDuration } = this.options;
+    const { scaleY } = this.model.data.transform;
+
+    const prevYAxisValuesContainer = this.yAxisValuesContainer;
+    const prevHorizontalStrokesContainer = this.horizontalStrokesContainer;
+
+    if (this.prevScaleY && this.prevScaleY !== scaleY) {
+      setTimeout(() => {
+        this.svg.removeChild(prevYAxisValuesContainer);
+        this.svg.removeChild(prevHorizontalStrokesContainer);
+        this.yAxisValuesContainer.setAttribute('class', '');
+        this.horizontalStrokesContainer.setAttribute('class', '');
+      }, YAxisValuesAnimationDuration);
+
+      this.yAxisValuesContainer = this.yAxisValuesContainer.cloneNode(true);
+      this.horizontalStrokesContainer = this.horizontalStrokesContainer.cloneNode(true);
+
+      const yAxisValuesContainerClass = this.prevScaleY > scaleY ? 'fadeInDown' : 'fadeInUp';
+
+      this.yAxisValuesContainer.setAttribute('class', yAxisValuesContainerClass);
+      this.horizontalStrokesContainer.setAttribute('class', yAxisValuesContainerClass);
+
+      const prevYAxisValuesContainerClass = this.prevScaleY > scaleY ? 'fadeOutDown' : 'fadeOutUp';
+      
+      prevYAxisValuesContainer.setAttribute('class', prevYAxisValuesContainerClass);
+      prevHorizontalStrokesContainer.setAttribute('class', prevYAxisValuesContainerClass);
+
+      this.svg.appendChild(this.yAxisValuesContainer);
+      this.svg.insertBefore(this.horizontalStrokesContainer, this.container);
+    }
+
+    this.prevScaleY = scaleY;
+  }
+
+  setYAxisValues() {
+    const { horizontalStrokesAmount } = this.options;
+    const { yMax, transform: { scaleY } } = this.model.data;
+    const step = (yMax / scaleY) / (horizontalStrokesAmount + 1);
+    const children = this.yAxisValuesContainer.children;
+
+    for (let i = 0; i < horizontalStrokesAmount; i++) {
+      const child = children[i];
+
+      if (child) {
+        child.textContent = Math.round(step * (i + 1));
+      }
+    }
+  }
+
   render() {
     const { scale: { xAxis, lines } } = this.model.data;
+
+    this.renderHorizontalStrokes();
 
     this.lines = lines.map((line, lineIndex) => {
       const { color } = this.model.data.lines[lineIndex]; // TODO: fix

@@ -17,3 +17,26 @@ export const filterEmpty = object => Object.keys(object)
     acc : Object.assign(acc, { [key]: object[key] }), {});
 
 export const max = arr => Math.max(...arr);
+
+export function debounce(func, wait, immediate) {
+  let timeout;
+
+  return function debounced(...args) {
+    const callNow = immediate && !timeout;
+
+    const later = () => {
+      timeout = null;
+
+      if (!immediate) {
+        func.apply(this, args);
+      }
+    };
+
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+
+    if (callNow) {
+      func.apply(this, args);
+    }
+  };
+}

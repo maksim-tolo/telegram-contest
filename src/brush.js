@@ -3,7 +3,8 @@ export default class Brush {
     return {
       minWidthPercentage: 0.02,
       initialWidthPercentage: 0.1,
-      onMove() {}
+      onMove() {},
+      brushOffset: 0
     };
   }
 
@@ -149,11 +150,11 @@ export default class Brush {
   }
 
   setSize() {
-    const { width, height, brushHeight, brushWidth} = this.options;
+    const { width, height, brushHeight, brushWidth, brushOffset } = this.options;
     const scaleX = brushWidth / width;
     const scaleY = brushHeight / height;
 
-    this.root.setAttribute('transform', `translate(0, ${height})`);
+    this.root.setAttribute('transform', `translate(0, ${height + brushOffset})`);
     this.container.setAttribute('transform', `scale(${scaleX}, ${scaleY})`);
   }
 
