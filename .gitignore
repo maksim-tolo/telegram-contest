@@ -18,3 +18,4 @@ build
 # Linters cache
 .eslintcache
 .stylelintcache
+.firebase

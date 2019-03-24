@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "webpack ./src/index.js -o ./build/bundle.js",
+    "build": "webpack --config config/webpack.config.prod.js",
     "start": "webpack-dev-server --entry ./src/index.js --output-filename build/bundle.js"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "css-loader": "^2.1.1",
+    "html-webpack-plugin": "^3.2.0",
+    "mini-css-extract-plugin": "^0.5.0",
+    "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "postcss-loader": "^3.0.0",
+    "terser-webpack-plugin": "^1.2.3",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0",
     "webpack-dev-server": "^3.2.1"
