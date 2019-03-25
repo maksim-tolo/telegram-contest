@@ -336,7 +336,7 @@ export default class SvgChart {
         vertex = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
         vertex.setAttribute('ry', '0');
         vertex.setAttribute('ry', '0');
-        vertex.setAttribute('fill', '#fff');
+        vertex.setAttribute('fill', 'inherit');
         vertex.setAttribute('stroke-width', strokeWidth);
         vertex.setAttribute('vector-effect', 'non-scaling-stroke');
         vertex.setAttribute('stroke', color);
@@ -401,7 +401,7 @@ export default class SvgChart {
       for (let i = 0; i <= horizontalStrokesAmount; i++) {
         if (!line) {
           line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-          line.setAttribute('stroke', '#e4eaef');
+          line.setAttribute('stroke', '#9da2a780');
           line.setAttribute('x1', '0');
           line.setAttribute('stroke-width', '1');
           line.setAttribute('x2', width);
@@ -622,7 +622,7 @@ export default class SvgChart {
     if (node.nodeName === 'line' && this.previusHoveredStroke !== node) {
       this.hideVerticalStroke();
 
-      node.setAttribute('stroke', '#e4eaef');
+      node.setAttribute('stroke', '#9da2a780');
       node.setAttribute('vector-effect', 'non-scaling-stroke');
       node.setAttribute('stroke-width', '1');
       this.previusHoveredStroke = node;

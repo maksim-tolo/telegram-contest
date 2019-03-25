@@ -1,6 +1,7 @@
 .rootContainer {
     margin-bottom: 50px;
     position: relative;
+    background: inherit;
 }
 
 .checkboxesContainer {

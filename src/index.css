@@ -6,8 +6,6 @@
 body {
     margin: 0;
     overflow-x: hidden;
-    /*background: #262f3d;*/
-
     font-family:
             'Helvetica Neue',
             -apple-system,
@@ -22,10 +20,21 @@ body {
             'Segoe UI Symbol';
 }
 
+.darkMode {
+    background: #262f3d;
+    color: #fff;
+}
+
 #root {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin: 10px;
     overflow-x: hidden;
+    background: inherit;
+}
+
+.title {
+    font-size: 20px;
+    margin-bottom: 10px;
 }
