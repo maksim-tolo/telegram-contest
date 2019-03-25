@@ -99,8 +99,11 @@ export default class SvgChart {
       this.checkboxesContainer.className = cx('checkboxesContainer');
       this.root.className = cx('rootContainer');
       this.horizontalStrokesContainer.style.animationDuration = `${yAxisValuesAnimationDuration}ms`;
+      this.horizontalStrokesContainer.style['-webkit-animation-duration'] = `${yAxisValuesAnimationDuration}ms`;
       this.yAxisValuesContainer.style.animationDuration = `${yAxisValuesAnimationDuration}ms`;
+      this.yAxisValuesContainer.style['-webkit-animation-duration'] = `${yAxisValuesAnimationDuration}ms`;
       this.xAxisValuesContainer.style.animationDuration = `${xAxisValuesAnimationDuration}ms`;
+      this.xAxisValuesContainer.style['-webkit-animation-duration'] = `${xAxisValuesAnimationDuration}ms`;
 
       this.container.style.transition = 'transform .2s'; // TODO: Move to class
 

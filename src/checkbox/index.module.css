@@ -42,6 +42,7 @@
 .input:checked + .tick {
     border: 0.5em solid;
     animation: shrink-bounce 200ms cubic-bezier(.4, .0, .23, 1);
+    -webkit-animation: shrink-bounce 200ms cubic-bezier(.4, .0, .23, 1);
 }
 
 .input:checked + .tick:before {
@@ -54,17 +55,36 @@
     transform: rotate(45deg);
     transform-origin: 0 100%;
     animation: checkbox-check 125ms 250ms cubic-bezier(.4, .0, .23, 1) forwards;
+    -webkit-animation: checkbox-check 125ms 250ms cubic-bezier(.4, .0, .23, 1) forwards;
 }
 
 @keyframes shrink-bounce {
     0% {
         transform: scale(1);
+        -webkit-transform: scale(1);
     }
     33% {
         transform: scale(.85);
+        -webkit-transform: scale(.85);
     }
     100% {
         transform: scale(1);
+        -webkit-transform: scale(1);
+    }
+}
+
+@-webkit-keyframes shrink-bounce {
+    0% {
+        transform: scale(1);
+        -webkit-transform: scale(1);
+    }
+    33% {
+        transform: scale(.85);
+        -webkit-transform: scale(.85);
+    }
+    100% {
+        transform: scale(1);
+        -webkit-transform: scale(1);
     }
 }
 
@@ -74,16 +94,42 @@
         height: 0;
         border-color: #fff;
         transform: translate3d(0, 0, 0) rotate(45deg);
+        -webkit-transform: translate3d(0, 0, 0) rotate(45deg);
     }
     33% {
         width: .2em;
         height: 0;
         transform: translate3d(0, 0, 0) rotate(45deg);
+        -webkit-transform: translate3d(0, 0, 0) rotate(45deg);
     }
     100% {
         width: .2em;
         height: .5em;
         border-color: #fff;
         transform: translate3d(0, -.5em, 0) rotate(45deg);
+        -webkit-transform: translate3d(0, -.5em, 0) rotate(45deg);
+    }
+}
+
+@-webkit-keyframes checkbox-check {
+    0% {
+        width: 0;
+        height: 0;
+        border-color: #fff;
+        transform: translate3d(0, 0, 0) rotate(45deg);
+        -webkit-transform: translate3d(0, 0, 0) rotate(45deg);
+    }
+    33% {
+        width: .2em;
+        height: 0;
+        transform: translate3d(0, 0, 0) rotate(45deg);
+        -webkit-transform: translate3d(0, 0, 0) rotate(45deg);
+    }
+    100% {
+        width: .2em;
+        height: .5em;
+        border-color: #fff;
+        transform: translate3d(0, -.5em, 0) rotate(45deg);
+        -webkit-transform: translate3d(0, -.5em, 0) rotate(45deg);
     }
 }

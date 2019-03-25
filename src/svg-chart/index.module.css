@@ -60,6 +60,7 @@
     -webkit-animation-name: fadeInUp;
     animation-name: fadeInUp;
     animation-fill-mode: both;
+    -webkit-animation-fill-mode: both;
 }
 
 @-webkit-keyframes fadeInDown {
@@ -94,6 +95,7 @@
     -webkit-animation-name: fadeInDown;
     animation-name: fadeInDown;
     animation-fill-mode: both;
+    -webkit-animation-fill-mode: both;
 }
 
 @-webkit-keyframes fadeInLeft {
@@ -128,6 +130,7 @@
     -webkit-animation-name: fadeInLeft;
     animation-name: fadeInLeft;
     animation-fill-mode: both;
+    -webkit-animation-fill-mode: both;
 }
 
 @-webkit-keyframes fadeInRight {
@@ -162,6 +165,7 @@
     -webkit-animation-name: fadeInRight;
     animation-name: fadeInRight;
     animation-fill-mode: both;
+    -webkit-animation-fill-mode: both;
 }
 
 @-webkit-keyframes fadeOutUp {
@@ -192,6 +196,7 @@
     -webkit-animation-name: fadeOutUp;
     animation-name: fadeOutUp;
     animation-fill-mode: both;
+    -webkit-animation-fill-mode: both;
 }
 
 @-webkit-keyframes fadeOutDown {
@@ -222,6 +227,7 @@
     -webkit-animation-name: fadeOutDown;
     animation-name: fadeOutDown;
     animation-fill-mode: both;
+    -webkit-animation-fill-mode: both;
 }
 
 @-webkit-keyframes fadeOutLeft {
@@ -252,6 +258,7 @@
     -webkit-animation-name: fadeOutLeft;
     animation-name: fadeOutLeft;
     animation-fill-mode: both;
+    -webkit-animation-fill-mode: both;
 }
 
 @-webkit-keyframes fadeOutRight {
@@ -282,6 +289,7 @@
     -webkit-animation-name: fadeOutRight;
     animation-name: fadeOutRight;
     animation-fill-mode: both;
+    -webkit-animation-fill-mode: both;
 }
 
 .tooltipTitle {
