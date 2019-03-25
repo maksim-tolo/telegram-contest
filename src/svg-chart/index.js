@@ -55,7 +55,7 @@ export default class SvgChart {
     this.showVerticalStroke = this.showVerticalStroke.bind(this);
     this.hideVerticalStrokesAndTooltip = this.hideVerticalStrokesAndTooltip.bind(this);
     // this.updateYAxisValues = debounce(this.updateYAxisValues.bind(this), this.options.yAxisValuesAnimationDuration);
-    this.animateXAxisValues = debounce(this.animateXAxisValues.bind(this), this.options.xAxisValuesAnimationDuration);
+    this.updateXAxisValues = debounce(this.updateXAxisValues.bind(this), this.options.xAxisValuesAnimationDuration);
 
     this.initDom();
     this.setSize();
@@ -67,7 +67,8 @@ export default class SvgChart {
   scale({ x, width }, { brushWidth }) {
     const { length } = this.model.data;
     const scaleStart = Math.round(x / brushWidth * length);
-    const scaleEnd = Math.round((x + width) / brushWidth * length);
+    const delta = Math.round(width / brushWidth * length);
+    const scaleEnd = scaleStart + delta;
 
     if (scaleStart !== this.scaleStart || scaleEnd !== this.scaleEnd) {
       this.model.transform(scaleStart, scaleEnd);
@@ -84,7 +85,7 @@ export default class SvgChart {
   // TODO: Add padding
   initDom() {
     if (!this.svg) {
-      const { yAxisValuesAnimationDuration } = this.options;
+      const { yAxisValuesAnimationDuration, xAxisValuesAnimationDuration } = this.options;
 
       this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       this.horizontalStrokesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -99,7 +100,7 @@ export default class SvgChart {
       this.root.className = cx('rootContainer');
       this.horizontalStrokesContainer.style.animationDuration = `${yAxisValuesAnimationDuration}ms`;
       this.yAxisValuesContainer.style.animationDuration = `${yAxisValuesAnimationDuration}ms`;
-      this.xAxisValuesContainer.style.animationDuration = `${yAxisValuesAnimationDuration}ms`;
+      this.xAxisValuesContainer.style.animationDuration = `${xAxisValuesAnimationDuration}ms`;
 
       this.container.style.transition = 'transform .2s'; // TODO: Move to class
 
@@ -511,7 +512,7 @@ export default class SvgChart {
 
   updateXAxisValues() {
     if (!this.allLinesHidden) {
-      // this.animateXAxisValues();
+      this.animateXAxisValues();
       this.setXAxisValues();
     }
   }
@@ -522,7 +523,7 @@ export default class SvgChart {
 
     const prevXAxisValuesContainer = this.xAxisValuesContainer;
 
-    if (this.prevStart && this.prevStart !== start) {
+    if (this.prevStart && this.prevEnd && (this.prevStart !== start || this.prevEnd !== end)) {
       setTimeout(() => {
         this.svg.removeChild(prevXAxisValuesContainer);
         this.xAxisValuesContainer.setAttribute('class', '');
@@ -530,8 +531,22 @@ export default class SvgChart {
 
       this.xAxisValuesContainer = this.xAxisValuesContainer.cloneNode(true);
 
-      const xAxisValuesContainerClass = cx(this.prevStart > start ? 'fadeInRight' : 'fadeInLeft');
-      const prevXAxisValuesContainerClass = cx(this.prevStart > start ? 'fadeInLeft' : 'fadeInRight');
+      const dLeft = this.prevStart - start;
+      const dRight = this.prevEnd - end;
+      const delta = dLeft - dRight;
+
+      let moveLeft = true;
+
+      if (!delta) {
+        moveLeft = dLeft < 0;
+      } else if (dLeft) {
+        moveLeft = dLeft < 0;
+      } else if (dRight) {
+        moveLeft = dRight < 0;
+      }
+
+      const xAxisValuesContainerClass = cx(moveLeft ? 'fadeInRight' : 'fadeInLeft');
+      const prevXAxisValuesContainerClass = cx(moveLeft ? 'fadeOutLeft' : 'fadeOutRight');
 
       this.xAxisValuesContainer.setAttribute('class', xAxisValuesContainerClass);
       prevXAxisValuesContainer.setAttribute('class', prevXAxisValuesContainerClass);
@@ -540,6 +555,7 @@ export default class SvgChart {
     }
 
     this.prevStart = start;
+    this.prevEnd = end;
   }
 
   setXAxisValues() {
