@@ -6,6 +6,7 @@
 body {
     margin: 0;
     overflow-x: hidden;
+    background: #fff;
     font-family:
             'Helvetica Neue',
             -apple-system,
@@ -23,6 +24,13 @@ body {
 .darkMode {
     background: #262f3d;
     color: #fff;
+}
+
+.nightModeSwitcher {
+    color: #1f7fe0;
+    font-size: 20px;
+    cursor: pointer;
+    margin-bottom: 20px;
 }
 
 #root {

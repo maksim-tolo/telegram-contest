@@ -336,10 +336,11 @@ export default class SvgChart {
         vertex = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
         vertex.setAttribute('ry', '0');
         vertex.setAttribute('ry', '0');
-        vertex.setAttribute('fill', 'inherit');
+        vertex.setAttribute('fill', 'currentColor');
         vertex.setAttribute('stroke-width', strokeWidth);
         vertex.setAttribute('vector-effect', 'non-scaling-stroke');
         vertex.setAttribute('stroke', color);
+        vertex.setAttribute('class', cx('vertex'))
       } else {
         vertex = vertex.cloneNode(false);
       }

@@ -20,6 +20,14 @@
     user-select: none;
 }
 
+:global(body.darkMode) .vertex {
+    color: #262f3d;
+}
+
+.vertex {
+    color: #fff;
+}
+
 @-webkit-keyframes fadeInUp {
     from {
         opacity: 0;
