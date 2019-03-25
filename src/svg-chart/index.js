@@ -4,7 +4,7 @@ import Checkbox from '../checkbox';
 import Tooltip from '../tooltip';
 
 import {
-  debounce,
+  throttle,
   tooltipXAxisDataFormatter,
   xAxisDataFormatter,
   classNames
@@ -33,6 +33,7 @@ export default class SvgChart {
       xAxisValuesPadding: 20,
       yAxisValuesAnimationDuration: 200,
       xAxisValuesAnimationDuration: 200,
+      animationDelay: 50,
       strokeWidth: 2,
       vertexRadius: 5,
       xAxisMaxTextWidth: 80,
@@ -51,11 +52,17 @@ export default class SvgChart {
     this.step = this.options.width / this.model.data.length;
     this.allLinesHidden = this.isAllLinesHidden();
 
+    const {
+      animationDelay,
+      yAxisValuesAnimationDuration,
+      xAxisValuesAnimationDuration
+    } = this.options;
+
     this.scale = this.scale.bind(this);
     this.showVerticalStroke = this.showVerticalStroke.bind(this);
     this.hideVerticalStrokesAndTooltip = this.hideVerticalStrokesAndTooltip.bind(this);
-    // this.updateYAxisValues = debounce(this.updateYAxisValues.bind(this), this.options.yAxisValuesAnimationDuration);
-    this.updateXAxisValues = debounce(this.updateXAxisValues.bind(this), this.options.xAxisValuesAnimationDuration);
+    this.updateYAxisValues = throttle(this.updateYAxisValues.bind(this), yAxisValuesAnimationDuration + animationDelay);
+    this.updateXAxisValues = throttle(this.updateXAxisValues.bind(this), xAxisValuesAnimationDuration + animationDelay);
 
     this.initDom();
     this.setSize();
