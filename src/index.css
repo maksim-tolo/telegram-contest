@@ -29,13 +29,6 @@ body {
     color: #fff;
 }
 
-.nightModeSwitcher {
-    color: #1f7fe0;
-    font-size: 20px;
-    cursor: pointer;
-    margin-bottom: 20px;
-}
-
 #root {
     display: flex;
     flex-direction: column;
