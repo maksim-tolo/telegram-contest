@@ -589,7 +589,11 @@ export default class SvgChart {
     }
   }
 
-  hideVerticalStrokesAndTooltip() {
+  hideVerticalStrokesAndTooltip(e) {
+    if (e && this.tooltip && e.relatedTarget === this.tooltip.root) {
+      return;
+    }
+
     this.hideVerticalStroke();
 
     if (this.tooltip) {
