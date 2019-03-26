@@ -32,7 +32,7 @@ export default class NightModeSwitcher {
     }
   }
 
-  constructor(options) {
+  constructor(options = {}) {
     this.options = Object.assign({}, NightModeSwitcher.DEFAULT_OPTIONS, options);
     this.root = document.createElement('div');
     this.root.className = cx('nightModeSwitcher');

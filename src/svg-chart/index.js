@@ -2,6 +2,7 @@ import ChartModel from '../chart-model';
 import Brush from '../brush';
 import Checkbox from '../checkbox';
 import Tooltip from '../tooltip';
+import XAxis from '../x-axis';
 
 import {
   throttle,
@@ -24,6 +25,8 @@ export default class SvgChart {
       withBrush: true,
       linesToggleable: true,
       withTooltip: true,
+      withXAxis: true,
+      withYAxis: true,
       brushHeight: 128,
       width: 1024,
       height: 512,
@@ -69,6 +72,7 @@ export default class SvgChart {
     this.initBrush();
     this.initCheckbox();
     this.initTooltip();
+    this.initXAxis();
   }
 
   scale({ x, width }, { brushWidth }) {
@@ -92,34 +96,26 @@ export default class SvgChart {
   // TODO: Add padding
   initDom() {
     if (!this.svg) {
-      const { yAxisValuesAnimationDuration, xAxisValuesAnimationDuration } = this.options;
+      const { yAxisValuesAnimationDuration } = this.options;
 
       this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       this.horizontalStrokesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.yAxisValuesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      this.xAxisValuesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.vertexesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.root = document.createElement('div');
-      this.checkboxesContainer = document.createElement('div');
 
-      this.checkboxesContainer.className = cx('checkboxesContainer');
       this.root.className = cx('rootContainer');
+      this.container.setAttribute('class', cx('chartContainer'));
       this.horizontalStrokesContainer.style.animationDuration = `${yAxisValuesAnimationDuration}ms`;
       this.horizontalStrokesContainer.style['-webkit-animation-duration'] = `${yAxisValuesAnimationDuration}ms`;
       this.yAxisValuesContainer.style.animationDuration = `${yAxisValuesAnimationDuration}ms`;
       this.yAxisValuesContainer.style['-webkit-animation-duration'] = `${yAxisValuesAnimationDuration}ms`;
-      this.xAxisValuesContainer.style.animationDuration = `${xAxisValuesAnimationDuration}ms`;
-      this.xAxisValuesContainer.style['-webkit-animation-duration'] = `${xAxisValuesAnimationDuration}ms`;
-
-      this.container.style.transition = 'transform .2s'; // TODO: Move to class
 
       this.svg.appendChild(this.horizontalStrokesContainer);
       this.svg.appendChild(this.container);
       this.svg.appendChild(this.yAxisValuesContainer);
-      this.svg.appendChild(this.xAxisValuesContainer);
       this.root.appendChild(this.svg);
-      this.root.appendChild(this.checkboxesContainer);
     }
   }
 
@@ -157,7 +153,7 @@ export default class SvgChart {
     const {
       tooltipWidth,
       withTooltip,
-      tooltipOffset,
+      tooltipOffset
     } = this.options;
 
     if (withTooltip) {
@@ -172,12 +168,40 @@ export default class SvgChart {
     const { linesToggleable } = this.options;
 
     if (linesToggleable) {
+      this.checkboxesContainer = document.createElement('div');
+      this.checkboxesContainer.className = cx('checkboxesContainer');
+
+      this.root.appendChild(this.checkboxesContainer);
+
       this.checkboxes = this.model.data.lines
         .map(({ color, name }, index) => new Checkbox({
           color,
           label: name,
           onChange: this.toggleLineVisibility.bind(this, index)
         }));
+    }
+  }
+
+  initXAxis() {
+    const {
+      withXAxis,
+      width,
+      height,
+      xAxisMaxTextWidth,
+      xAxisValuesAnimationDuration,
+      xAxisDataFormatter,
+      xAxisValuesPadding
+    } = this.options;
+
+    if (withXAxis) {
+      this.xAxis = new XAxis(this.model.data.xAxis, {
+        width,
+        height,
+        valuesAmount: Math.floor(width / xAxisMaxTextWidth),
+        animationDuration: xAxisValuesAnimationDuration,
+        dataFormatter: xAxisDataFormatter,
+        padding: xAxisValuesPadding
+      });
     }
   }
 
@@ -503,97 +527,11 @@ export default class SvgChart {
     }
   }
 
-  renderXAxisValues() {
-    const { xAxisMaxTextWidth, width } = this.options;
-    const valuesAmount = Math.floor(width / xAxisMaxTextWidth);
-
-    let text;
-
-    for (let i = 0; i < valuesAmount; i++) {
-      if (!text) {
-        text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('class', cx('xAxisValue'));
-      } else {
-        text = text.cloneNode(false);
-      }
-
-      this.xAxisValuesContainer.appendChild(text);
-    }
-  }
-
   updateXAxisValues() {
-    if (!this.allLinesHidden) {
-      this.animateXAxisValues();
-      this.setXAxisValues();
-    }
-  }
+    if (this.xAxis && !this.allLinesHidden) {
+      const { start, end } = this.model.data.transform;
 
-  animateXAxisValues() {
-    const { xAxisValuesAnimationDuration } = this.options;
-    const { start, end } = this.model.data.transform;
-
-    const prevXAxisValuesContainer = this.xAxisValuesContainer;
-
-    if (this.prevStart && this.prevEnd && (this.prevStart !== start || this.prevEnd !== end)) {
-      setTimeout(() => {
-        this.svg.removeChild(prevXAxisValuesContainer);
-        this.xAxisValuesContainer.setAttribute('class', '');
-      }, xAxisValuesAnimationDuration);
-
-      this.xAxisValuesContainer = this.xAxisValuesContainer.cloneNode(true);
-
-      const dLeft = this.prevStart - start;
-      const dRight = this.prevEnd - end;
-      const delta = dLeft - dRight;
-
-      let moveLeft = true;
-
-      if (!delta) {
-        moveLeft = dLeft < 0;
-      } else if (dLeft) {
-        moveLeft = dLeft < 0;
-      } else if (dRight) {
-        moveLeft = dRight < 0;
-      }
-
-      const xAxisValuesContainerClass = cx(moveLeft ? 'fadeInRight' : 'fadeInLeft');
-      const prevXAxisValuesContainerClass = cx(moveLeft ? 'fadeOutLeft' : 'fadeOutRight');
-
-      this.xAxisValuesContainer.setAttribute('class', xAxisValuesContainerClass);
-      prevXAxisValuesContainer.setAttribute('class', prevXAxisValuesContainerClass);
-
-      this.svg.appendChild(this.xAxisValuesContainer);
-    }
-
-    this.prevStart = start;
-    this.prevEnd = end;
-  }
-
-  setXAxisValues() {
-    const { xAxisMaxTextWidth, width, xAxisValuesPadding, height } = this.options;
-    const { xAxis, transform: { start, end } } = this.model.data;
-    const length = end - start;
-    const expectedAmount = Math.floor(width / xAxisMaxTextWidth);
-    const valuesAmount = Math.min(expectedAmount, length);
-    const step = length / valuesAmount;
-    const children = this.xAxisValuesContainer.children;
-    const diff = width / valuesAmount;
-
-    for (let i = 0; i < expectedAmount; i++) {
-      const child = children[i];
-
-      if (i < valuesAmount) {
-        const index = Math.min(Math.round(start + (i * step)), xAxis.length - 1);
-        const data = this.options.xAxisDataFormatter(xAxis[index]);
-
-        child.setAttribute('x', i * diff);
-        child.setAttribute('y', height + xAxisValuesPadding);
-        // child.setAttribute('transform', `translate(${i * diff}, ${height + xAxisValuesPadding})`);
-        child.textContent = data;
-        child.style.visibility = 'visible';
-      } else {
-        child.style.visibility = 'hidden';
-      }
+      this.xAxis.updateValues(start, end);
     }
   }
 
@@ -602,9 +540,7 @@ export default class SvgChart {
 
     this.renderHorizontalStrokes();
     this.renderVerticalStrokes();
-    this.renderXAxisValues();
     this.updateYAxisValues();
-    this.updateXAxisValues();
 
     this.lines = lines.map((line, lineIndex) => {
       const { color } = this.model.data.lines[lineIndex]; // TODO: fix
@@ -684,16 +620,21 @@ export default class SvgChart {
 
     node.appendChild(this.root);
 
-    if (this.brush) {
-      this.brush.attach(this.svg, this.lines.map(line => line.cloneNode(false)));
-    }
-
     if (this.checkboxes) {
       this.checkboxes.forEach(checkbox => checkbox.attach(this.checkboxesContainer));
     }
 
     if (this.tooltip) {
       this.tooltip.attach(this.root);
+    }
+
+    if (this.xAxis) {
+      this.xAxis.attach(this.svg);
+      this.updateXAxisValues();
+    }
+
+    if (this.brush) {
+      this.brush.attach(this.svg, this.lines.map(line => line.cloneNode(false)));
     }
 
     this.addListeners();
@@ -710,6 +651,10 @@ export default class SvgChart {
 
     if (this.tooltip) {
       this.tooltip.detach(this.root);
+    }
+
+    if (this.xAxis) {
+      this.xAxis.detach(this.svg);
     }
 
     node.removeChild(this.root);
