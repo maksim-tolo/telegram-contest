@@ -33,7 +33,7 @@ export default class SvgChart {
       xAxisValuesPadding: 20,
       yAxisValuesAnimationDuration: 200,
       xAxisValuesAnimationDuration: 200,
-      animationDelay: 50,
+      animationDelay: 5,
       strokeWidth: 2,
       vertexRadius: 5,
       xAxisMaxTextWidth: 80,

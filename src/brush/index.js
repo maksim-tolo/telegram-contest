@@ -75,7 +75,7 @@ export default class Brush {
   }
 
   dragStart(e) {
-    this.startX = e.pageX;
+    this.startX = e.type === 'touchstart' ? e.targetTouches[0].pageX : e.pageX;
     this.startRectX = this.position.x;
     this.startRectWidth = this.position.width;
     this.dragTarget = e.target;
@@ -99,7 +99,8 @@ export default class Brush {
   }
 
   moveRect(e) {
-    const dx = this.startX - e.pageX;
+    const pageX = e.type === 'touchmove' ? e.targetTouches[0].pageX : e.pageX;
+    const dx = this.startX - pageX;
 
     let x = this.position.x;
     let width = this.position.width;
