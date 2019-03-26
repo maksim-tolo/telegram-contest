@@ -1,32 +1,19 @@
-const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const paths = require('./paths');
-const getClientEnvironment = require('./env');
 
 const publicPath = '/';
-const publicUrl = '';
-const env = getClientEnvironment(publicUrl);
 
 module.exports = {
   mode: 'development',
   devtool: 'cheap-module-source-map',
-  entry: [
-    paths.appIndexJs,
-  ],
+  entry: [paths.appIndexJs],
   output: {
     pathinfo: true,
     filename: 'static/js/bundle.js',
     chunkFilename: 'static/js/[name].chunk.js',
     publicPath,
-  },
-  optimization: {
-    splitChunks: {
-      chunks: 'all',
-      name: 'vendors',
-    },
-    runtimeChunk: true,
   },
   resolve: {
     extensions: ['.web.js', '.mjs', '.js', '.json'],
@@ -63,7 +50,7 @@ module.exports = {
                   import: false,
                 },
               },
-              require.resolve('postcss-loader'),
+              // require.resolve('postcss-loader'),
             ],
           },
           {
@@ -79,7 +66,7 @@ module.exports = {
                   localIdentName: '[folder]_[local]_[hash:base64:4]',
                 },
               },
-              require.resolve('postcss-loader'),
+              // require.resolve('postcss-loader'),
             ],
           },
         ],
@@ -91,7 +78,6 @@ module.exports = {
       inject: true,
       template: paths.appHtml,
     }),
-    new webpack.DefinePlugin(env.stringified),
     new webpack.HotModuleReplacementPlugin(),
   ],
   node: {
@@ -103,5 +89,13 @@ module.exports = {
   },
   performance: {
     hints: false,
+  },
+  devServer: {
+    compress: true,
+    clientLogLevel: 'none',
+    contentBase: paths.appPublic,
+    watchContentBase: true,
+    hot: true,
+    publicPath,
   },
 };

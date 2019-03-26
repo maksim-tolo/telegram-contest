@@ -1,4 +1,3 @@
-const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
@@ -6,6 +5,8 @@ const TerserPlugin = require('terser-webpack-plugin');
 // const InlineChunkHtmlPlugin = require('react-dev-utils/InlineChunkHtmlPlugin');
 
 const paths = require('./paths');
+
+const publicPath = '/';
 
 module.exports = {
   mode: 'production',
@@ -16,7 +17,7 @@ module.exports = {
     path: paths.appBuild,
     filename: 'static/js/[name].[chunkhash:8].js',
     chunkFilename: 'static/js/[name].[chunkhash:8].chunk.js',
-    publicPath: '/',
+    publicPath,
   },
   optimization: {
     minimizer: [
