@@ -215,12 +215,7 @@ export default class SvgChart {
     this.model.updateLine(lineIndex, { visible });
     this.model.transform(start, end);
     this.allLinesHidden = this.isAllLinesHidden();
-
-    if (visible) {
-      this.lines[lineIndex].setAttribute('stroke-width', this.options.strokeWidth);
-    } else {
-      this.lines[lineIndex].setAttribute('stroke-width', 0);
-    }
+    this.lines[lineIndex].style.opacity = visible ? 1 : 0;
 
     this.setSize();
     this.updateYAxisValues();
@@ -410,11 +405,8 @@ export default class SvgChart {
 
     path.setAttribute('stroke', color);
     path.setAttribute('d', d);
-    path.setAttribute('vector-effect', 'non-scaling-stroke');
+    path.setAttribute('class', cx('chartLine'));
     path.setAttribute('stroke-width', this.options.strokeWidth);
-    path.setAttribute('fill', 'none');
-
-    path.style.transition = 'stroke-width .1s'; // TODO: Move to class
 
     return path;
   }

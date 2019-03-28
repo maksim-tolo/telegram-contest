@@ -1,0 +1,24 @@
+.container {
+    transition: transform .2s;
+}
+
+.rectangle {
+    stroke-width: 1;
+    fill: transparent;
+    stroke: #bbd9ec80;
+    cursor: move;
+}
+
+.lineLeft {
+    stroke-width: 8;
+    stroke: #bbd9ec80;
+    transform: translate(4px, 0);
+    cursor: ew-resize;
+}
+
+.lineRight {
+    stroke-width: 8;
+    stroke: #bbd9ec80;
+    transform: translate(-4px, 0);
+    cursor: ew-resize;
+}

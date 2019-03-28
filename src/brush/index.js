@@ -1,3 +1,9 @@
+import { classNames } from '../helper';
+
+import styles from './index.module.css';
+
+const cx = classNames.bind(styles);
+
 export default class Brush {
   static get DEFAULT_OPTIONS() {
     return {
@@ -43,35 +49,20 @@ export default class Brush {
       this.lineLeft = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       this.lineRight = document.createElementNS('http://www.w3.org/2000/svg', 'line');
 
-      this.rect.setAttribute('stroke-width', '1');
-      this.rect.setAttribute('fill', 'transparent');
-      this.rect.setAttribute('stroke', '#bbd9ec80');
+      this.container.setAttribute('class', cx('container'));
+      this.rect.setAttribute('class', cx('rectangle'));
+      this.lineLeft.setAttribute('class', cx('lineLeft'));
+      this.lineRight.setAttribute('class', cx('lineRight'));
 
-      this.container.style.transition = 'transform .2s'; // TODO: Move to class
-      this.rect.style.cursor = 'move'; // TODO: Move to class
-      this.lineLeft.style.cursor = 'ew-resize'; // TODO: Move to class
-      this.lineRight.style.cursor = 'ew-resize'; // TODO: Move to class
+      this.lineLeft.setAttribute('y2', this.options.brushHeight);
+      this.lineRight.setAttribute('y2', this.options.brushHeight);
 
       this.root.appendChild(this.container);
       this.root.appendChild(this.rectContainer);
       this.rectContainer.appendChild(this.rect);
       this.rectContainer.appendChild(this.lineLeft);
       this.rectContainer.appendChild(this.lineRight);
-
-      // TODO: Refactoring
-      this.lineLeft.setAttribute('transform', `translate(${4}, 0)`);
-      this.lineRight.setAttribute('transform', `translate(${-4}, 0)`);
-
-      this.initLinePosition(this.lineLeft, this.options.brushHeight);
-      this.initLinePosition(this.lineRight, this.options.brushHeight);
     }
-  }
-
-  // TODO: refactoring
-  initLinePosition(line, y2) {
-    line.setAttribute('y2', y2);
-    line.setAttribute('stroke-width', '8');
-    line.setAttribute('stroke', '#bbd9ec80');
   }
 
   dragStart(e) {
@@ -200,12 +191,7 @@ export default class Brush {
 
   toggleLineVisibility(lineIndex, visible) {
     this.linesVisibility[lineIndex] = visible;
-
-    if (visible) {
-      this.lines[lineIndex].setAttribute('stroke-width', 2);
-    } else {
-      this.lines[lineIndex].setAttribute('stroke-width', 0);
-    }
+    this.lines[lineIndex].style.opacity = visible ? 1 : 0;
 
     this.scale();
   }

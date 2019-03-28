@@ -27,6 +27,12 @@
     color: #fff;
 }
 
+.chartLine {
+    fill: none;
+    transition: opacity .1s;
+    vector-effect: non-scaling-stroke;
+}
+
 @-webkit-keyframes fadeInUp {
     from {
         opacity: 0;
