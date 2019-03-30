@@ -1,4 +1,7 @@
-import { classNames } from '../helper';
+import {
+  classNames,
+  createElement
+} from '../helper';
 
 import styles from './index.module.css';
 
@@ -34,7 +37,7 @@ export default class NightModeSwitcher {
 
   constructor(options = {}) {
     this.options = Object.assign({}, NightModeSwitcher.DEFAULT_OPTIONS, options);
-    this.root = document.createElement('div');
+    this.root = createElement('div');
     this.root.className = cx('nightModeSwitcher');
     this.isDarkMode = NightModeSwitcher.getSavedTheme(this.options.saveKey);
     this.updateDom();

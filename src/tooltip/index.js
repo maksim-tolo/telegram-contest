@@ -1,4 +1,8 @@
-import { isNumber, classNames } from '../helper';
+import {
+  isNumber,
+  classNames,
+  createElement
+} from '../helper';
 
 import styles from './index.module.css';
 
@@ -14,7 +18,7 @@ export default class Tooltip {
 
   constructor(options = {}) {
     this.options = Object.assign({}, Tooltip.DEFAULT_OPTIONS, options);
-    this.root = document.createElement('div');
+    this.root = createElement('div');
     this.root.className = cx('tooltipContainer');
     this.root.style.top=`${this.options.offset}px`;
     this.root.style.width=`${this.options.width}px`;

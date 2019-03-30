@@ -94,7 +94,6 @@ export default class ChartModel {
 
   /**
    * @public
-   * TODO: Update line props
    */
   updateLine(lineIndex, options) {
     const line = this.data.lines[lineIndex];

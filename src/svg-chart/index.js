@@ -8,7 +8,9 @@ import {
   throttle,
   tooltipXAxisDataFormatter,
   xAxisDataFormatter,
-  classNames
+  classNames,
+  createSvgElement,
+  createElement
 } from '../helper';
 
 import styles from './index.module.css';
@@ -98,12 +100,12 @@ export default class SvgChart {
     if (!this.svg) {
       const { yAxisValuesAnimationDuration } = this.options;
 
-      this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      this.horizontalStrokesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      this.yAxisValuesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      this.vertexesContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      this.root = document.createElement('div');
+      this.svg = createSvgElement('svg');
+      this.horizontalStrokesContainer = createSvgElement('g');
+      this.yAxisValuesContainer = createSvgElement('g');
+      this.container = createSvgElement('g');
+      this.vertexesContainer = createSvgElement('g');
+      this.root = createElement('div');
 
       this.root.className = cx('rootContainer');
       this.container.setAttribute('class', cx('chartContainer'));
@@ -168,7 +170,7 @@ export default class SvgChart {
     const { linesToggleable } = this.options;
 
     if (linesToggleable) {
-      this.checkboxesContainer = document.createElement('div');
+      this.checkboxesContainer = createElement('div');
       this.checkboxesContainer.className = cx('checkboxesContainer');
 
       this.root.appendChild(this.checkboxesContainer);
@@ -325,7 +327,7 @@ export default class SvgChart {
       const xPosition = this.step * index;
 
       if (!line) {
-        line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line = createSvgElement('line');
         line.setAttribute('stroke', 'transparent');
         line.setAttribute('y1', '0');
         line.setAttribute('stroke-width', this.step);
@@ -335,7 +337,7 @@ export default class SvgChart {
       }
 
       if (!g) {
-        g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g = createSvgElement('g');
       } else {
         g = g.cloneNode(false);
       }
@@ -362,7 +364,7 @@ export default class SvgChart {
 
     line.forEach((y, index) => {
       if (!vertex) {
-        vertex = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+        vertex = createSvgElement('ellipse');
         vertex.setAttribute('ry', '0');
         vertex.setAttribute('ry', '0');
         vertex.setAttribute('fill', 'currentColor');
@@ -401,7 +403,7 @@ export default class SvgChart {
       return `${acc} L ${vertex}`;
     }, '');
 
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const path = createSvgElement('path');
 
     path.setAttribute('stroke', color);
     path.setAttribute('d', d);
@@ -427,7 +429,7 @@ export default class SvgChart {
 
       for (let i = 0; i <= horizontalStrokesAmount; i++) {
         if (!line) {
-          line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line = createSvgElement('line');
           line.setAttribute('stroke', '#9da2a780');
           line.setAttribute('x1', '0');
           line.setAttribute('stroke-width', '1');
@@ -437,7 +439,7 @@ export default class SvgChart {
         }
 
         if (!text) {
-          text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text = createSvgElement('text');
           text.setAttribute('class', cx('yAxisValue'));
         } else {
           text = text.cloneNode(false);

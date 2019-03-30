@@ -1,4 +1,7 @@
-import { classNames } from '../helper';
+import {
+  classNames,
+  createSvgElement
+} from '../helper';
 
 import styles from './index.module.css';
 
@@ -42,12 +45,12 @@ export default class Brush {
 
   initDom() {
     if (!this.root) {
-      this.root = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      this.container = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      this.rectContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      this.rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      this.lineLeft = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      this.lineRight = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      this.root = createSvgElement('g');
+      this.container = createSvgElement('g');
+      this.rectContainer = createSvgElement('g');
+      this.rect = createSvgElement('rect');
+      this.lineLeft = createSvgElement('line');
+      this.lineRight = createSvgElement('line');
 
       this.container.setAttribute('class', cx('container'));
       this.rect.setAttribute('class', cx('rectangle'));

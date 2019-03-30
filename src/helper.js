@@ -12,6 +12,10 @@ export const isNumber = value => typeof value === 'number';
 
 export const isObject = value => typeof value === 'object';
 
+export const createSvgElement = tagName => document.createElementNS('http://www.w3.org/2000/svg', tagName);
+
+export const createElement = tagName => document.createElement(tagName);
+
 export const tooltipXAxisDataFormatter = (value) => {
   const date = new Date(value);
   const dayOfWeek = DAYS_OF_WEEK[date.getDay()];

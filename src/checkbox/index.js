@@ -1,4 +1,7 @@
-import { classNames } from '../helper';
+import {
+  classNames,
+  createElement
+} from '../helper';
 
 import styles from './index.module.css';
 
@@ -15,7 +18,7 @@ export default class Checkbox {
 
   constructor(options = {}) {
     this.options = Object.assign({}, Checkbox.DEFAULT_OPTIONS, options);
-    this.root = document.createElement('div');
+    this.root = createElement('div');
     this.root.className = cx('container');
   }
 

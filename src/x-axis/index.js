@@ -1,6 +1,7 @@
 import {
   classNames,
-  isUndefined
+  isUndefined,
+  createSvgElement
 } from '../helper';
 
 import styles from './index.module.css';
@@ -21,7 +22,7 @@ export default class XAxis {
     this.data = data;
     this.cache = [];
     this.options = Object.assign({}, XAxis.DEFAULT_OPTIONS, options);
-    this.root = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.root = createSvgElement('g');
 
     const { animationDuration } = this.options;
 
@@ -36,7 +37,7 @@ export default class XAxis {
 
     for (let i = 0; i < valuesAmount; i++) {
       if (!text) {
-        text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text = createSvgElement('text');
         text.setAttribute('class', cx('xAxisValue'));
       } else {
         text = text.cloneNode(false);

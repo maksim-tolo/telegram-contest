@@ -1,6 +1,8 @@
 import SvgChart from './svg-chart';
 import NightModeSwitcher from './night-mode-switcher';
 
+import { createElement } from './helper';
+
 import chartData from './chart-data';
 
 import './index.css';
@@ -11,7 +13,7 @@ const toggleDarkMode = isDarkMode =>
 function init() {
   const nightModeSwitcher = new NightModeSwitcher({ onToggle: toggleDarkMode });
   const root = document.getElementById('root');
-  const title = document.createElement('div');
+  const title = createElement('div');
 
   title.textContent = 'Followers';
   title.className = 'title';
