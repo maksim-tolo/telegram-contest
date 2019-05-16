@@ -8,6 +8,7 @@ const paths = require('./paths');
 
 const publicPath = '/';
 
+// TODO: Add autoprefixer
 module.exports = {
   mode: 'production',
   bail: true,

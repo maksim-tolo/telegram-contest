@@ -96,6 +96,7 @@ export default class SvgChart {
   }
 
   // TODO: Add padding
+  // Remove extra spaces from the chart tail
   initDom() {
     if (!this.svg) {
       const { yAxisValuesAnimationDuration } = this.options;
@@ -598,19 +599,12 @@ export default class SvgChart {
   // TODO: Add touch handlers
   addListeners() {
     this.vertexesContainer.addEventListener('mouseover', this.showVerticalStroke);
-    // this.vertexesContainer.addEventListener('touchmove', this.showVerticalStroke);
-    // this.vertexesContainer.addEventListener('touchstart', this.showVerticalStroke);
     this.svg.addEventListener('mouseleave', this.hideVerticalStrokesAndTooltip);
-    // this.vertexesContainer.addEventListener('touchend', this.hideVerticalStrokesAndTooltip, true);
-    // this.vertexesContainer.addEventListener('touchcancel', this.hideVerticalStrokesAndTooltip, true);
   }
 
   removeListeners() {
     this.vertexesContainer.removeEventListener('mouseover', this.showVerticalStroke);
-    // this.vertexesContainer.removeEventListener('touchmove', this.showVerticalStroke);
-    // this.vertexesContainer.removeEventListener('touchstart', this.showVerticalStroke);
     this.svg.removeEventListener('mouseleave', this.hideVerticalStrokesAndTooltip);
-    // document.removeEventListener('touchend', this.hideVerticalStrokesAndTooltip);
   }
 
   attach(node) {

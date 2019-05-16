@@ -7,6 +7,7 @@ import styles from './index.module.css';
 
 const cx = classNames.bind(styles);
 
+// TODO: Expand click handling area
 export default class Checkbox {
   static get DEFAULT_OPTIONS() {
     return {

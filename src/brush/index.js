@@ -7,6 +7,7 @@ import styles from './index.module.css';
 
 const cx = classNames.bind(styles);
 
+// TODO: Add blackout according to design
 export default class Brush {
   static get DEFAULT_OPTIONS() {
     return {
